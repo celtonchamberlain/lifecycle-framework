@@ -1,0 +1,156 @@
+---
+type: rule
+title: MCP Usage — When and How to Use Each Server
+status: active
+authority: ssot
+affects: []
+created: "{{TODAY}}"
+updated: "{{TODAY}}"
+tags: []
+---
+
+# MCP Usage — When and How to Use Each Server
+
+The MCP servers exist to prevent specific failure modes. If a task matches a trigger below
+and you skip the server, explain why in the task report.
+
+## Which servers this project uses
+- **memory** — REQUIRED. Plugin-declared, with a **per-project** `MEMORY_FILE_PATH` so this
+  project's knowledge graph never mixes with another's.
+- **github** — recommended. User-global prerequisite (not declared by the plugin).
+- **tracker** — `{{TRACKER}}`. Recommended. User-global prerequisite. The `/log-tracker`
+  skill branches on the tracker chosen at init (Linear, or Atlassian for Jira). If
+  `{{TRACKER}}` is `none`, the project runs on the local `TODO.md` only.
+- **databricks** — `{{DATABRICKS}}`. Data-stack only. When `on`, SQL runs through the
+  `databricks-sql-connector` package (not an MCP), authenticated via the `~/.databrickscfg`
+  profile `{{DATABRICKS_PROFILE}}`. When `off`, ignore this section.
+
+Enabled servers and connection identity are declared in `.claude/settings.json`; tokens live
+in the gitignored `.claude/.local/secrets.env`.
+
+---
+
+## 1. Memory (Knowledge Graph) — REQUIRED
+
+Store: `{{MEMORY_FILE_PATH}}` (per-project; never a plugin-shared file).
+
+**When:** every session start, and after every completed task (`/close-task` writes it).
+
+**Session start — read before acting:**
+```
+search_nodes("{{PROJECT_SLUG}}")    → current project state and open decisions
+search_nodes("task")                → what has been done
+search_nodes("corrections")         → avoid repeating known mistakes
+search_nodes("decisions")           → recall decisions of record
+```
+Use `read_graph` only when you genuinely need the full graph — `search_nodes` first.
+
+**After completing a task:**
+```
+create_entities   → a new task-result entity with findings
+add_observations  → append discoveries to existing entities
+create_relations  → link the task to the project entity
+```
+
+**What to store:** task completion + date + key findings; corrections (wrong paths, broken
+assumptions discovered); decisions of record and their rationale; recurring failure modes.
+
+**What NOT to store:** secrets/tokens/credentials; warehouse ids, hostnames, catalog names;
+speculation or assumptions; information already captured verbatim in a task report (link,
+don't duplicate).
+
+**Entity naming convention** (keep it stable so lookups work across sessions):
+- `{{PROJECT_SLUG}}_project` — top-level project facts.
+- `{{PROJECT_SLUG}}_task_<NN>_<short>` — per-task findings.
+- `{{PROJECT_SLUG}}_corrections` — living record of path/assumption fixes.
+
+---
+
+## 2. github (recommended)
+
+Repo: `{{GITHUB_REPO}}` on `{{GIT_HOST}}`. Working branch `{{GIT_BRANCH}}`; default branch
+`{{GIT_DEFAULT_BRANCH}}`.
+
+**When:** inspecting/creating PRs, reading CI status, managing branches, cross-referencing
+issues — anything that needs the remote repository's state rather than the local working tree.
+
+**Typical lifecycle use:**
+- **Branches** — one ticket = one branch = one PR; branch off `{{GIT_DEFAULT_BRANCH}}`.
+- **PRs (Step 8 / CI review)** — open the PR against `{{GIT_DEFAULT_BRANCH}}`, read CI
+  status, reference the tracker ticket in the PR body.
+- Prefer the `github` MCP over shelling out for remote operations so results integrate with
+  the session; fall back to `gh` CLI when the MCP is unavailable.
+
+---
+
+## 3. tracker — {{TRACKER}} (recommended)
+
+**When:** at lifecycle milestones, via `/log-tracker` (the human-readable half of the
+dual-write; the JSONL `activity_log` is the machine half). Mirror the step to the tracker
+and cross-reference it by id. The skill reads the connection from `.claude/settings.json` at
+runtime and posts to the correct backend for `{{TRACKER}}`. Routine intra-step progress uses
+`/log-activity` (JSONL only, no tracker comment).
+
+**Lifecycle touchpoints (both backends):**
+- **Step 1 (Brief)** — move the start ticket to **In Progress** and post the kickoff comment.
+- **Milestones** — comment on blockers and decisions of record as they land.
+- **Step 10 (Close)** — move the ticket to **Done** (via `/close-task`) and post the close
+  comment.
+
+**If `{{TRACKER}}` = Linear:**
+- Tools: `mcp__claude_ai_Linear__*`. Workspace `{{TRACKER_ORG}}`, team `{{TRACKER_TEAM}}`,
+  project/initiative `{{TRACKER_PROJECT}}`, ticket prefix `{{TRACKER_KEY}}`.
+- Status transitions: `save_issue` (move state at Step 1 / Step 10).
+- Comments: `save_comment` (milestones only).
+- Discovery: `list_projects` / `list_initiatives` to resolve scope; `get_issue` to validate
+  a ticket exists.
+- Linear is the source of truth for ticket status; `TODO.md` is a mirror synced by
+  `/close-task`. When they disagree, Linear wins — fix the mirror.
+
+**If `{{TRACKER}}` = Jira (Atlassian):**
+- Tools: `mcp__claude_ai_Atlassian__*`. Cloud id `{{TRACKER_CLOUD_ID}}`, project key
+  `{{TRACKER_KEY}}` (mirrored in `{{TRACKER_PROJECT}}`), team `{{TRACKER_TEAM}}`.
+- Status transitions: `getTransitionsForJiraIssue` then `transitionJiraIssue` (move state at
+  Step 1 / Step 10).
+- Comments: `addCommentToJiraIssue` (milestones only).
+- Reading: `getJiraIssue` to validate/read a ticket; `searchJiraIssuesUsingJql` to query;
+  `getVisibleJiraProjects` / `getAccessibleAtlassianResources` to resolve scope and cloud id.
+- Jira is the source of truth for ticket status; `TODO.md` is the mirror.
+
+**If `{{TRACKER}}` = none:** there is no tracker MCP — the project runs on `TODO.md` only.
+Skip the touchpoints above.
+
+---
+
+## 4. Databricks — {{DATABRICKS}} (data stack)
+
+Active only when `{{DATABRICKS}} = on`. Databricks is **not** an MCP server here: local SQL
+runs through the `databricks-sql-connector` Python package (CLI v0.288+ has no `sql`
+subcommand).
+
+**Auth & config (never hardcode in code — these live in config):**
+- Profile: `{{DATABRICKS_PROFILE}}` (default env for everyday work), from `~/.databrickscfg`.
+- Environments in use: `{{DATABRICKS_ENVS}}`. Default host: `{{DATABRICKS_DEFAULT_HOST}}`.
+- Per-env hosts: see `corpus.config.mjs` / `.claude/settings.json` `databricks.hosts`.
+- Per-env warehouse ids: see `databricks.warehouses` in the same files.
+- Use OAuth via `w.config.authenticate()` — never `w.config.token` or a raw token string.
+- On Windows, set `PYTHONIOENCODING=utf-8` (lives in `.claude/.local/secrets.env`) for
+  correct Unicode output.
+
+**Environment selection per task:** pick the env profile that matches the task — `dev` for
+exploration/build, `qa` for validation, `prod` only when the task explicitly targets
+production. Default to `{{DATABRICKS_PROFILE}}` when the task does not say.
+
+**Read-only by default:** queries are read-only unless the task explicitly authorizes a
+write (DDL/DML). Never hardcode credentials, catalog names, warehouse ids, or workspace URLs
+in code; never store any of those in memory.
+
+---
+
+## Rule: don't ignore MCPs
+Each server prevents a concrete failure:
+- Skipping **memory** → the next session re-discovers what this one already learned.
+- Skipping **github** → PR/CI state drifts from the local working tree.
+- Skipping **tracker** → the plan drifts from the team's source of truth.
+- Skipping **Databricks** config discipline → secrets/ids leak into code or the wrong env is hit.
+If you skip a triggered server, say why in the task report.

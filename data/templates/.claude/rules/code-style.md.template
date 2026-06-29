@@ -1,0 +1,51 @@
+---
+type: rule
+title: Code Style Rules
+status: active
+authority: ssot
+affects: []
+created: "{{TODAY}}"
+updated: "{{TODAY}}"
+tags: []
+---
+
+# Code Style Rules
+
+> Stack-agnostic baseline. Where this project's stack has stricter idioms (a linter
+> config, a style guide, framework conventions), the stack's rules win — record them in
+> `CLAUDE.md` and treat them as an extension of this file, not a replacement.
+
+## File Organization
+- Prefer many small, single-purpose files over few large ones.
+- Separate concerns: one module = one responsibility.
+- Group by feature/domain, not by file type, once a directory grows past a handful of files.
+- Keep a clear, discoverable entry point per module.
+
+## Naming
+- Be consistent with the conventions already present in the file/directory you are editing.
+- Names describe intent, not implementation (`activeUsers`, not `arr2`).
+- No abbreviations that aren't already established in the codebase.
+- One naming scheme per kind of identifier (e.g. constants, types, files) — don't mix.
+
+## Comments
+- Self-documenting code is preferred over comments.
+- Comments explain **WHY**, not **WHAT** — the code already says what it does.
+- No commented-out code — that is what version control is for.
+- Document non-obvious decisions, invariants, and gotchas at the point they matter.
+
+## Structure & Readability
+- Functions do one thing; extract when a function grows past a single clear purpose.
+- Avoid deep nesting — prefer early returns / guard clauses.
+- No magic numbers or magic strings — name them.
+- Keep public surfaces small; export only what callers need.
+
+## Error Handling
+- Never swallow errors silently.
+- Always include context when logging or re-raising (what was being attempted, with which inputs).
+- Fail loud and early on programmer errors; degrade gracefully on expected/recoverable conditions.
+- Do not leak internal details (stack traces, secrets, internal paths) into user-facing output.
+
+## Formatting
+- Match the indentation and formatting already used in the file.
+- Where the project has an auto-formatter or linter, that tool is the source of truth — run it; do not hand-fight it.
+- Newline at end of file.

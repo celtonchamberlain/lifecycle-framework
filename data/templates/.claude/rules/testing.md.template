@@ -1,0 +1,45 @@
+---
+type: rule
+title: Testing Rules
+status: active
+authority: ssot
+affects: []
+created: "{{TODAY}}"
+updated: "{{TODAY}}"
+tags: []
+---
+
+# Testing Rules
+
+> The frozen **alpha test** (designed by the DA at Step 4, sealed at Step 6, run at Step 8)
+> is the binary acceptance gate for a task. These rules govern the *developer* tests written
+> alongside the implementation — they complement, not replace, the alpha test.
+
+## Test Priority (verify in this order)
+1. The acceptance criteria in the spec are met (the contract the work is judged against).
+2. The happy path works end to end.
+3. Boundary and edge cases (empty, zero, max, null/absent, malformed input).
+4. Error and failure paths behave as specified (correct error, no silent swallow).
+5. Integration points and contracts with other modules hold.
+6. Regressions: previously-fixed bugs stay fixed.
+
+## Organization
+- Tests live beside or mirror the code they cover, following the stack's convention.
+- One behavior per test; the test name states the behavior being asserted.
+- Arrange–Act–Assert: clear setup, a single action, explicit assertions.
+- Prefer testing observable behavior through public surfaces over internal implementation.
+
+## Independence & Determinism
+- Tests are independent — no test depends on another's side effects or ordering.
+- Tests are deterministic — no reliance on wall-clock time, network, randomness, or
+  ambient state; inject/stub those.
+- Each test sets up and tears down its own state; the suite is repeatable in any order.
+
+## What NOT to Test
+- Third-party library internals — trust them; test your usage of them.
+- Trivial pass-throughs with no logic.
+- Implementation details that are free to change without changing behavior.
+
+## Automation
+- Where the stack supports it, wire the suite into CI so it runs on every PR.
+- A red suite blocks the lifecycle: implementation is not "done" until its tests pass.

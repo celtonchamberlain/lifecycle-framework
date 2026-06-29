@@ -1,0 +1,97 @@
+---
+type: doc
+title: "{{PROJECT_NAME}} — Strategy"
+ticket: null
+status: active
+authority: ssot
+protection: protected
+affects: []
+depends_on: []
+created: "{{TODAY}}"
+updated: "{{TODAY}}"
+tags: [strategy]
+owner: human
+related_decisions: []
+---
+
+# {{PROJECT_NAME}} — Strategy
+
+> **The GOAL** — what this project must achieve and why. **Protected:** the PM never edits
+> this file directly; it proposes a change at close and the human authorizes. Drafted at
+> init ({{TODAY}}); it grows as decisions of record are made.
+
+---
+
+## §1. Project overview
+
+{{PROJECT_GOAL}}
+
+<!-- guidance: Expand into 2-4 sentences. What is this project? Who is it for? What does
+     "done" look like at a high level? Keep intent here; keep the live build state in
+     architecture.md and the running history in project_chronicle.md. -->
+
+---
+
+## §2. Problem statement
+
+<!-- guidance: What is broken / missing today that this project exists to fix? Be concrete
+     about the pain and who feels it. The problem statement anchors every spec — when a spec
+     drifts from this, the spec is wrong, not this file. -->
+
+---
+
+## §3. Scope & non-goals
+
+<!-- guidance: What this project WILL deliver, and — just as important — what it deliberately
+     will NOT. Non-goals prevent scope creep across many tasks and sessions. -->
+
+**In scope**
+
+- <placeholder>
+
+**Non-goals**
+
+- <placeholder>
+
+---
+
+## §4. Known assets
+
+<!-- guidance: The inputs the project already has — data sources, existing systems, docs,
+     prior art, accounts/access. What does each give the project? -->
+
+| Asset | What it is | What it gives the project |
+|-------|-----------|---------------------------|
+| <placeholder> | <placeholder> | <placeholder> |
+
+---
+
+## §5. Decision log
+
+<!-- guidance: The "why we do X this way" record. One row per decision of record. Council
+     verdicts (docs/claude_tasks/council/) feed this — copy the decision and link the verdict.
+     A superseded decision is kept (struck through or marked SUPERSEDED), never deleted —
+     the history is the value. Add the decision id to this file's `related_decisions`. -->
+
+| # | Date | Decision | Rationale | Status |
+|---|------|----------|-----------|--------|
+| 1 | {{TODAY}} | Adopt the Lifecycle Framework: 10-step lifecycle, role-specialized AI team, bias-controlled review (alpha test frozen before implementation). | Governance-first sequencing — the work must be traceable from the first task. | active |
+
+---
+
+## §6. Risk register
+
+<!-- guidance: Known risks to the goal, with likelihood/impact and a mitigation or revisit
+     trigger. Reviewed at close when a decision changes the risk surface. -->
+
+| Risk | Likelihood | Impact | Mitigation / revisit trigger |
+|------|-----------|--------|------------------------------|
+| <placeholder> | low \| med \| high | low \| med \| high | <placeholder> |
+
+---
+
+## §7. Forward strategy
+
+<!-- guidance: How the goal is approached over time — phases, the path from here to "done",
+     the next milestone. Grows as the project progresses. Environment-specific identifiers
+     (hosts, ids, keys) belong in CLAUDE.md / settings.json, NOT here. -->

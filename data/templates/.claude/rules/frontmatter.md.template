@@ -1,0 +1,379 @@
+---
+type: rule
+title: "Frontmatter taxonomy — schema, heuristics, and validation rules"
+status: active
+authority: ssot
+affects:
+  - repo.docs
+  - repo.scripts
+  - repo.ci
+  - repo.hooks
+created: "{{TODAY}}"
+updated: "{{TODAY}}"
+tags: [frontmatter, schema, tooling, docs]
+---
+
+# Frontmatter Taxonomy — Schema, Heuristics, and Validation Rules
+
+> **Source of truth** for `.md` frontmatter across this entire repository. The validator
+> (`scripts/validate-frontmatter.mjs`), the index builder (`scripts/build-index.mjs`), the
+> git hooks (`.husky/`), and CI (`.github/workflows/lint-frontmatter.yml`) all reference
+> this file. Every agent, template, and skill must read this file — do **NOT** derive the
+> schema from memory.
+>
+> Throughout this document, `{{TRACKER_KEY}}` is this project's ticket prefix (the
+> identifier before the number, e.g. an issue id looks like `{{TRACKER_KEY}}-432`). If this
+> project has no tracker (`{{TRACKER}} = none`), `ticket_id` is always `null` and the
+> ticket-id grammar rule is relaxed accordingly.
+
+---
+
+## §1. Why frontmatter
+
+Primary objective: prevent **authority errors** (the wrong artifact treated as the source of
+truth when several versions of a fact coexist) and **blast-radius blindness** (a change to a
+shared object whose dependents were never identified). Token reduction is a secondary benefit.
+
+| Failure mode | Root cause | This schema addresses |
+|---|---|---|
+| **FM1** — Wrong artifact treated as SSOT | No formal `authority:` declaration when two artifacts state the same fact | `authority: ssot \| secondary \| superseded` encoded in frontmatter |
+| **FM2** — Spec-vs-reality drift not caught | No systematic cross-check between an artifact and its dependents | `/audit-corpus` flags missing `authority:` and broken cross-references |
+| **FM3** — Blast-radius blindness | No reverse lookup when a shared object changes | `affects:` field + `affects-lookup.mjs` reverse index |
+
+---
+
+## §2. Common fields (all `.md` files in scope)
+
+```yaml
+---
+type: spec | report | review | council | doc | rule | agent | skill | archive | audit | handoff
+title: "Human-readable short title"
+ticket_id: {{TRACKER_KEY}}-432   # primary key when task-scoped; null for non-task docs
+status: draft | active | in_progress | done | blocked | superseded | abandoned | living | snapshot | open | answered | decided | pending
+authority: ssot | secondary | superseded   # see §4
+affects: []                       # see §5; required for specs that touch shared objects
+created: 2026-01-01               # ISO date
+updated: 2026-01-01               # ISO date, bumped on every edit
+tags: [auth, mfa]                 # lowercase kebab-case, max 8 entries
+---
+```
+
+`ticket_id` is the universal task key. Its value follows this project's tracker
+(`{{TRACKER}}`): a Linear/Jira id of the form `{{TRACKER_KEY}}-<number>`, or `null` for any
+doc that is not task-scoped (and always `null` when `{{TRACKER}} = none`).
+
+---
+
+## §3. Per-type extensions
+
+### `spec` — in `docs/claude_tasks/NN_*.md`
+
+```yaml
+task_number: 49                # integer; collisions resolved by appending 'b' to the newer file
+domain: <free-form area>       # e.g. auth | ui | perf | data | infra | content | docs | tooling
+phase: <project phase>         # e.g. pre-mvp | mvp | post-mvp (project-defined)
+depends_on: [{{TRACKER_KEY}}-431, {{TRACKER_KEY}}-430]   # blocked-by relations
+supersedes: {{TRACKER_KEY}}-300                           # optional
+```
+
+### `report` — in `docs/claude_tasks/reports/*` (DE Step-7 deliverable)
+
+```yaml
+task_number: 33
+reviewer_findings: { critical: 0, high: 1, medium: 2, low: 3 }   # roll-up of the code-reviewer verdict
+deployed: true | false
+```
+
+### `review` — in `docs/claude_tasks/reviews/*`
+
+```yaml
+reviewer: de | da | code-reviewer | devils-advocate
+task_number: 33
+verdict: <see per-reviewer enum below>
+critical_count: 0
+high_count: 2
+```
+
+**Per-reviewer `verdict:` enum (the validator enforces it per the `reviewer:` field):**
+
+| Reviewer | Norse alias (cross-ref) | Allowed verdicts |
+|---|---|---|
+| `de` | — | `approve` \| `approve_with_fixes` \| `reject_needs_rework` |
+| `da` | — | `approve` \| `approve_with_fixes` \| `reject_needs_rework` |
+| `code-reviewer` | (formerly heimdall) | `safe` \| `non_blocking` \| `not_safe_to_deploy` |
+| `devils-advocate` | (formerly loki) | `mostly_grounded_dissent` \| `mostly_speculative` |
+
+> The code-reviewer verdict mirrors the deploy gate: **any CRITICAL finding ⇒ `not_safe_to_deploy`**.
+> The devils-advocate never approves — its verdict only characterizes how grounded the
+> objections were (Grounded-Dissent Protocol).
+
+### `council` — in `docs/claude_tasks/council/*`
+
+```yaml
+topic: <one-line decision topic>
+decision_id: 78                # links to a strategy.md decision-log entry
+participants: [pm, de, da, code-reviewer, devils-advocate]   # devils-advocate is mandatory
+```
+
+### `doc` — in `docs/*.md` (excluding the sub-types above)
+
+```yaml
+last_reviewed: 2026-01-01
+owner: <name or role>
+related_decisions: [76, 78]    # optional — strategy.md decision-log entries
+```
+
+### `handoff` — in `docs/claude_tasks/*` (multi-session task handoff)
+
+```yaml
+task_number: 49
+ticket_id: {{TRACKER_KEY}}-403
+next_action: "<the single next step for the resuming session>"
+```
+
+> A `handoff` is the artifact a *transitory close* writes when a task spans more than one
+> session (see the lifecycle). It is the durable form of `context_snapshot.md` for one task.
+
+### `agent`, `skill`, `rule` — in `agents/`, `skills/`, `.claude/rules/**/*.md`
+
+These files carry their own native frontmatter. Preserve existing `name:`, `description:`,
+`tools:`, `model:`, `allowed-tools:` fields. You MAY add `tags:` if it does not conflict. Do
+**NOT** add `ticket_id:` — these files are not task-scoped.
+
+### `archive` — in `docs/claude_tasks/archive/*` and `docs/**/archive/*`
+
+```yaml
+archived_date: 2026-01-01
+superseded_by: docs/strategy.md   # path or ticket_id of the replacement
+original_date: 2026-01-01
+```
+
+### `audit` — in `docs/audits/*`
+
+```yaml
+audit_period: 2026-W19           # ISO week, or a date range
+issues: { high: 0, medium: 3, low: 7 }
+```
+
+---
+
+## §4. `authority:` semantics
+
+| Value | Meaning | Wins when |
+|---|---|---|
+| `ssot` | Source of truth. If two artifacts disagree, this one wins. | Always — at most **one** `ssot` per `(ticket_id, surface)` pair. |
+| `secondary` | Reference / context, not authoritative. | Loses to `ssot` on any conflict (reports, reviews, handoffs). |
+| `superseded` | Historical, no longer authoritative. | Never wins. Read-only audit trail. |
+
+**Override rule:** an explicit `authority:` declaration in frontmatter always wins over the
+path-derived default in §5.
+
+---
+
+## §5. Path-derived `authority:` and `type:` defaults
+
+A backfill heuristic derives these from the file path when an author has not declared them.
+An explicit frontmatter declaration always wins.
+
+| Path glob | Default `authority:` | Default `type:` |
+|---|---|---|
+| `docs/claude_tasks/NN_*.md` | `secondary` | `spec` |
+| `docs/claude_tasks/alpha_tests/*` | `ssot` | `spec` |
+| `docs/claude_tasks/reports/*` | `secondary` | `report` |
+| `docs/claude_tasks/reviews/*` | `secondary` | `review` |
+| `docs/claude_tasks/council/*` | `ssot` | `council` |
+| `docs/claude_tasks/archive/*` | `superseded` | `archive` |
+| `docs/strategy.md` | `ssot` | `doc` |
+| `docs/architecture.md` | `ssot` | `doc` |
+| `docs/project_chronicle.md` | `ssot` | `doc` |
+| `docs/knowledge_base/*.md` | `ssot` | `doc` |
+| `docs/audits/*` | `secondary` | `audit` |
+| `docs/**/archive/*` | `superseded` | `archive` |
+| `agents/*.md` | `ssot` | `agent` |
+| `skills/**/*.md` | `ssot` | `skill` |
+| `.claude/rules/**/*.md` | `ssot` | `rule` |
+
+Fallback for any unmatched path: `type: doc`, `authority: secondary`.
+
+> The frozen acceptance tests under `docs/claude_tasks/alpha_tests/` are `ssot`: once sealed
+> they are the binding pass/fail contract. `/audit-corpus` flags a sealed alpha test that was
+> modified after sealing as a **High** finding (the FREEZE RULE).
+
+---
+
+## §6. `affects:` semantics
+
+Free-form list of canonical object identifiers naming what a change touches, so a reverse
+lookup (`scripts/affects-lookup.mjs`) can answer "what depends on this object?". Required on
+`type: spec` whenever any commit on the spec's branch changes a **shared object** (a schema,
+a public API/route, a data contract, an environment variable, a scheduled job, or a shared
+repo surface). Purely local changes MAY omit `affects:`.
+
+### Allowed prefixes (stack-neutral)
+
+| Prefix | Meaning | Examples |
+|---|---|---|
+| `data.<object>` | A persisted data object (table, collection, dataset, model) | `data.users`, `data.invoices` |
+| `fn.<name>()` | A stored/shared function or procedure | `fn.compute_balance()`, `fn.is_owner()` |
+| `api.<path>` | A public API endpoint or route | `api./users/:id`, `api./auth/login` |
+| `ui.<surface>` | A user-facing page/view/component | `ui.dashboard`, `ui.components/DatePicker` |
+| `auth.<surface>` | An authentication/authorization surface | `auth.session`, `auth.mfa` |
+| `job.<workflow>` | A scheduled/background job or pipeline stage | `job.nightly-sync`, `job.fx-rates` |
+| `env.<var>` | An environment variable / secret name | `env.DATABASE_URL`, `env.API_TOKEN` |
+| `migration.<id>` | A database migration / schema-change unit | `migration.0042` |
+| `dep.<package>` | An external dependency | `dep.express`, `dep.pydantic` |
+| `repo.<section>` | A repository-level surface | `repo.docs`, `repo.scripts`, `repo.ci`, `repo.hooks`, `repo.layout` |
+
+This prefix set is the generic baseline. A project MAY extend it with stack-specific prefixes
+by documenting the addition here (this file is the SSOT, so the addition is then valid); the
+validator checks `affects:` items against the grammar declared in this section.
+
+---
+
+## §7. Validation rules
+
+`scripts/validate-frontmatter.mjs` enforces these. That script is the implementation; this
+section is its specification.
+
+### Hard rules (block in CI; warn-only locally via `--warn-only`)
+
+1. **Frontmatter required** — every `.md` in scope opens with `---` on line 1.
+   Scope excludes: `node_modules/`, `.git/`, and the stack's build-output dirs (e.g. `dist/`, `build/`, `.next/`, `out/`).
+2. **YAML parses** — the frontmatter block is valid YAML.
+3. **`type:` is in the type enum** (§2).
+4. **`status:` is a valid value** for the type (§2/§3).
+5. **`ticket_id:` matches `^{{TRACKER_KEY}}-\d+$` or is `null`** — and is present (not omitted) on `type: spec`. When `{{TRACKER}} = none`, only `null` is accepted.
+6. **Cross-references resolve** — every `depends_on:` / `supersedes:` ticket id exists in the corpus index.
+7. **`authority:` ∈ `{ssot, secondary, superseded}`**.
+8. **`affects:` items match the prefix grammar** (§6).
+9. **`affects:` required** when `type: spec` AND any branch commit touches a shared object (§6).
+10. **UTF-8 without BOM** — the file does not start with `\xEF\xBB\xBF`.
+11. **No leftover template sentinel** — the "DELETE THIS HEADER BEFORE PUBLISHING" marker is not present in a published artifact under `docs/claude_tasks/`.
+12. **At most one `ssot`** per `(ticket_id, surface)` pair (§4).
+
+### Soft rules (warning only)
+
+- `tags:` empty on a `type: spec` older than 7 days.
+- `updated:` more than 60 days behind the file's git mtime.
+- `description:` (where present, e.g. handoffs) longer than 200 chars.
+
+### CI vs local
+
+- **Local pre-commit (`.husky/pre-commit`):** runs with `--warn-only` — warns without
+  blocking the commit. Escape hatch: `SKIP=lint-frontmatter git commit ...`.
+- **CI (`.github/workflows/lint-frontmatter.yml`):** blocking — fails the PR on any
+  hard-rule violation, and verifies the INDEX is fresh (no drift from source).
+
+---
+
+## §8. Backfill algorithm
+
+A backfill helper (`scripts/backfill-frontmatter.mjs`, when present) populates frontmatter on
+files that lack it:
+
+1. **Skip** any file whose line 1 is `---` (idempotent — never overwrite existing frontmatter).
+2. **Detect `type:`** from the path glob (§5).
+3. **Derive `title:`** from the first `# H1`; fall back to the filename slug → Title Case.
+4. **Derive `ticket_id:`** by matching `{{TRACKER_KEY}}-\d+` in the filename or first ~100 lines; `null` if not found.
+5. **Derive `created:`** from `git log --diff-filter=A --follow --format=%aI <path> | tail -1`.
+6. **Derive `updated:`** from `git log -1 --format=%aI <path>`.
+7. **Derive `authority:`** from the path-glob default (§5).
+8. **Set `affects: []`** — empty; fill on the next edit if relevant.
+9. **Set `tags: []`** — empty; populated manually.
+10. **Atomic write** — temp file + rename; UTF-8, LF line endings.
+
+---
+
+## §9. Templates
+
+The governed-doc templates `/new-doc` scaffolds from live in `docs/_templates/`. Each starts
+with a complete frontmatter scaffold (§2 + the relevant §3 extension), uses `<placeholder>`
+tokens, includes `<!-- guidance -->` comments, and contains a **"DELETE THIS HEADER BEFORE
+PUBLISHING"** sentinel that the validator flags (rule §7.11) if left in a published file.
+
+| File | Purpose |
+|---|---|
+| `spec.md` | PM spec skeleton (scope, out-of-scope, approach, acceptance criteria, risks) |
+| `alpha_test.md` | DA frozen acceptance test (designed Step 4, sealed Step 6) |
+| `report.md` | DE task report (Step 7 deliverable) |
+| `review_de.md` | DE Step-5 spec feasibility review |
+| `review_da.md` | DA data/QA validation review |
+| `review_code-reviewer.md` | Code-reviewer severity-tiered findings + deploy verdict |
+| `review_devils-advocate.md` | Devils-advocate ranked, evidence-grounded objections |
+| `council.md` | Council verdict with the deliberation protocol + reopen criteria |
+| `handoff.md` | Multi-session task handoff (transitory close) |
+
+---
+
+## §10. INDEX and reverse lookup
+
+### `docs/INDEX.md`
+Autogenerated by `build-index.mjs`. Human-readable: per-type tables, a cross-reference graph
+of `depends_on` / `supersedes` edges, and a drift/health summary from the last `/audit-corpus`
+run. Size target: small enough to read as context.
+
+### `docs/index.json`
+Machine-readable cache from the same build, committed for offline queries:
+
+```json
+{
+  "generated_at": "YYYY-MM-DD",
+  "files_indexed": 0,
+  "by_object": {
+    "data.users": [
+      { "ticket_id": "{{TRACKER_KEY}}-348", "task_number": 10, "path": "...", "created": "2026-01-01" }
+    ]
+  },
+  "by_ticket_id": { "{{TRACKER_KEY}}-348": { "title": "...", "path": "...", "affects": ["..."] } }
+}
+```
+
+### `scripts/affects-lookup.mjs`
+CLI: `node scripts/affects-lookup.mjs <object>` (e.g. `data.users`). Reads `docs/index.json`;
+if the cache is stale (any `.md` newer than the cache), it warns and falls back to a full
+source scan. `--json` outputs JSON.
+
+---
+
+## §11. Skills that consume this schema
+
+- **`/new-doc`** — creates a doc from the matching `docs/_templates/` template; for
+  `type: spec` it prompts for `affects:` items and `authority:` when ambiguous.
+- **`/audit-corpus`** — validates all frontmatter, rebuilds `INDEX.md` + `index.json`, and
+  writes a tiered health report to `docs/audits/`.
+
+`/audit-corpus` severity tiers:
+
+| Severity | Checks |
+|---|---|
+| **High** | Parse errors; missing required fields; non-existent cross-references; a sealed alpha test modified after sealing; a broken mandatory-read path in `CLAUDE.md` |
+| **Medium** | Stale `updated:` (>60d); orphan specs (no report/review chain); two artifacts on the same surface without an `authority:` declaration |
+| **Low** | Empty `tags:` on a spec; `task_number` collisions; over-long `description:` |
+
+---
+
+## §12. Lifecycle integration
+
+### `/close-task` (Step 10)
+After a task lands, in addition to its chronicle/memory/tracker steps, `/close-task`:
+1. Sets `status: done` on the spec file.
+2. Bumps `updated:` to today on the spec file.
+3. If any branch commit touched a shared object (§6), prompts for `affects:` items and
+   appends any not already declared.
+
+### `pm` Step 1
+When two artifacts state the same fact for one `ticket_id`, the PM MUST check which carries
+`authority: ssot` before writing the spec — the `ssot` artifact governs (§4).
+
+---
+
+## §13. Reference files
+
+- `docs/_templates/` — the governed-doc templates (§9).
+- `scripts/validate-frontmatter.mjs` — the validator (this file is its spec).
+- `scripts/build-index.mjs` — INDEX + `index.json` generator.
+- `scripts/affects-lookup.mjs` — reverse-lookup CLI.
+- `scripts/backfill-frontmatter.mjs` — backfill helper (§8), when present.
+- `.husky/pre-commit` — local warn-only validation hook.
+- `.github/workflows/lint-frontmatter.yml` — CI blocking validation + INDEX-freshness check.
+- `docs/INDEX.md` / `docs/index.json` — the autogenerated indexes.

@@ -1,0 +1,302 @@
+/**
+ * corpus.config.mjs — Single source of truth for {{PROJECT_NAME}} corpus constants.
+ *
+ * Scaffolded by /lifecycle-init from the lifecycle-framework plugin. The five
+ * corpus tools import their project-specific constants from this module:
+ *   - _corpus-walk.mjs          (EXCLUDED_DIRS, EXCLUDED_ROOT_FILES, PROJECT_SKILLS)
+ *   - validate-frontmatter.mjs  (TYPE/STATUS/AUTHORITY enums, verdicts, affects grammar, VALIDATOR)
+ *   - build-index.mjs           (TICKET_REGEX, OUTPUT paths)
+ *   - log-commit-activity.mjs   (OUTPUT paths, BRANCH_TICKET_REGEX, TICKET_KEY)
+ *   - affects-lookup.mjs        (TICKET_REGEX, OUTPUT paths)
+ *
+ * Change the taxonomy in ONE place; the tools follow. Centralizing these
+ * constants eliminates the multi-file drift that comes from each script
+ * inlining its own copy of the enums/exclusions.
+ *
+ * Taxonomy authority: .claude/rules/frontmatter.md (the frontmatter SSOT).
+ *
+ * Project identity, tracker, git, and Databricks connection details are the
+ * committed (NON-SECRET) half of the project's wiring — they mirror
+ * .claude/settings.json. Secrets (API tokens, PYTHONIOENCODING) live ONLY in
+ * the gitignored .claude/.local/secrets.env; never hardcode credentials,
+ * catalog names, or workspace URLs in code. Databricks hosts/warehouse ids
+ * below are configuration, not secrets, and per the data-stack rules must
+ * live here in config rather than inline in any script.
+ *
+ * Tracker key for this project: {{TRACKER_KEY}}   (e.g. CRI, ABC, PROJ).
+ * If tracker = none, {{TRACKER_KEY}} is still set to a local prefix used only
+ * for branch/filename derivation; tickets remain optional in frontmatter.
+ */
+
+// ---------------------------------------------------------------------------
+// Project identity
+// ---------------------------------------------------------------------------
+
+/** Stable project slug — names the per-project memory file; unique per project. */
+export const projectSlug = '{{PROJECT_SLUG}}';
+
+/** The project's tracker ticket prefix (Jira project key or Linear prefix). */
+export const ticketKey = '{{TRACKER_KEY}}';
+
+/**
+ * Tracker (issue-tracking) connection — committed identity only, no token.
+ *   type      'linear' | 'jira' | 'none'
+ *   key       ticket prefix / Jira project key (= ticketKey)
+ *   org       Linear workspace (empty for Jira)
+ *   team      Linear team (empty unless team-managed)
+ *   project   Linear project/initiative id-or-name, or Jira project key
+ *   cloudId   Atlassian site/cloud id (Jira only; empty for Linear)
+ */
+export const tracker = {
+  type: '{{TRACKER}}',
+  key: ticketKey,
+  org: '{{TRACKER_ORG}}',
+  team: '{{TRACKER_TEAM}}',
+  project: '{{TRACKER_PROJECT}}',
+  cloudId: '{{TRACKER_CLOUD_ID}}',
+};
+
+// ---------------------------------------------------------------------------
+// Frontmatter taxonomy enums
+// ---------------------------------------------------------------------------
+
+/** The governed document types (.claude/rules/frontmatter.md). */
+export const TYPE_ENUM = new Set([
+  'spec',
+  'report',
+  'review',
+  'alpha_test',
+  'council',
+  'doc',
+  'rule',
+  'agent',
+  'skill',
+  'archive',
+  'audit',
+]);
+
+export const STATUS_ENUM = new Set([
+  'draft', 'active', 'in_progress', 'done', 'blocked',
+  'superseded', 'abandoned', 'living', 'snapshot',
+  'open', 'answered', 'decided',
+  'pending',
+  // alpha_test lifecycle (Step 4 design → Step 6 seal → Step 8 execute)
+  'sealed', 'passed', 'failed',
+]);
+
+export const AUTHORITY_ENUM = new Set(['ssot', 'secondary', 'superseded']);
+
+/**
+ * Reviewer roles (type: review frontmatter). Role-descriptive names — the
+ * lifecycle-framework dropped the Norse aliases (code-reviewer was "heimdall",
+ * devils-advocate was "loki").
+ */
+export const REVIEWER_ENUM = new Set(['de', 'da', 'code-reviewer', 'devils-advocate']);
+
+/** Per-reviewer verdict vocabularies (type: review frontmatter). */
+export const VERDICT_ENUMS = {
+  de: new Set(['approve', 'approve_with_fixes', 'reject_needs_rework']),
+  da: new Set(['approve', 'approve_with_fixes', 'reject_needs_rework']),
+  'code-reviewer': new Set(['approve', 'approve_with_followups', 'not_safe_to_deploy']),
+  'devils-advocate': new Set(['attack', 'mostly_grounded_dissent', 'mostly_speculative']),
+};
+
+/** Valid status values for type: alpha_test (a strict subset of STATUS_ENUM). */
+export const ALPHA_TEST_STATUS_ENUM = new Set(['draft', 'sealed', 'passed', 'failed']);
+
+// ---------------------------------------------------------------------------
+// Ticket identifiers (tracker key = {{TRACKER_KEY}})
+// ---------------------------------------------------------------------------
+
+/**
+ * The project's tracker ticket prefix (Jira project key or Linear ticket
+ * prefix). Drives both TICKET_REGEX (frontmatter full-string match) and
+ * BRANCH_TICKET_REGEX (loose derivation from branch names / filenames).
+ * Alias of `ticketKey`, kept for the historical import surface
+ * (log-commit-activity.mjs imports TICKET_KEY).
+ */
+export const TICKET_KEY = ticketKey;
+
+/**
+ * Canonical ticket format — full-string match for the frontmatter `ticket`
+ * field plus `depends_on` / `supersedes`. Example: {{TRACKER_KEY}}-123.
+ */
+export const TICKET_REGEX = new RegExp(`^${TICKET_KEY}-\\d+$`);
+
+/**
+ * Loose derivation variant — extracts the ticket number from branch names
+ * (feat/{{TRACKER_KEY}}-912-slug, user/{{TRACKER_KEY}}-912-slug) and filenames
+ * ({{TRACKER_KEY}}-912_foo.md). Capture group 1 is the numeric part; normalize
+ * to `${TICKET_KEY}-${m[1]}`. Case-insensitive so lowercase branch slugs match.
+ */
+export const BRANCH_TICKET_REGEX = new RegExp(`${TICKET_KEY}-?(\\d+)`, 'i');
+
+// ---------------------------------------------------------------------------
+// affects: prefix grammar
+// ---------------------------------------------------------------------------
+
+/**
+ * Stack-neutral affects: grammar — the dotted namespaces a governed doc may
+ * declare it affects. Extend this list per project (add stack-specific
+ * namespaces such as table.* / metric.* for data projects, or route.* /
+ * component.* for web projects). The validator (R8) enforces it.
+ *
+ *   module.<name>     a code module / package / service
+ *   data.<name>       a dataset / table / model / store
+ *   interface.<name>  an external interface / endpoint / API surface
+ *   repo.<section>    a section of this repository
+ *   env.<var>         an environment variable / runtime config key
+ *   dep.<package>     a third-party dependency
+ *   doc.<path-slug>   a governed document
+ */
+export const AFFECTS_PREFIXES = [
+  'module.', 'data.', 'interface.',
+  'repo.', 'env.', 'dep.', 'doc.',
+];
+
+export const AFFECTS_PREFIX_RE = new RegExp(
+  `^(${AFFECTS_PREFIXES.map((p) => p.replace(/\./g, '\\.')).join('|')})`
+);
+
+// ---------------------------------------------------------------------------
+// Corpus walk exclusions
+// ---------------------------------------------------------------------------
+
+/**
+ * Directory basenames excluded from the corpus walk anywhere in the path.
+ * Build outputs, vendored packages, tooling caches, and the _templates dir
+ * (its placeholder values intentionally fail validation).
+ */
+export const EXCLUDED_DIRS = new Set([
+  // Build outputs / vendored
+  'node_modules', '.git', '.husky', 'out', 'coverage', 'dist', 'build',
+  '.next', '.vercel', '.svelte-kit',
+  // Tooling caches
+  '__pycache__', '.venv', 'venv', '.pytest_cache', '.mypy_cache', '.ruff_cache',
+  '.ipynb_checkpoints',
+  // External / cache / editor dirs (not part of the governed corpus)
+  '.agents', '.firecrawl', '.vs', '.idea', '.vscode', '.cache',
+  // Templates use placeholder values that intentionally fail validation
+  '_templates',
+]);
+
+/**
+ * Root-level files that are human-owned working documents, not governed
+ * corpus. They carry no frontmatter and must never be flagged by the validator.
+ *   TODO.md   — the roadmap / tracker mirror (protected; human-owned).
+ *   README.md — repo-facing prose for humans landing on the repository.
+ */
+export const EXCLUDED_ROOT_FILES = new Set([
+  'TODO.md',
+  'README.md',
+]);
+
+/**
+ * Project-owned Claude Code skills (`.claude/skills/<name>/SKILL.md`) that ARE
+ * part of the governed corpus. Any other depth >= 4 file under .claude/skills/
+ * is excluded (vendored skill bundles, assets, references). NOTE: the
+ * lifecycle-framework slash commands (/close-task, /log-activity, etc.) are
+ * PLUGIN-RESIDENT and live outside this repo, so they are not listed here.
+ * List only skills authored inside this project's `.claude/skills/`.
+ */
+export const PROJECT_SKILLS = new Set([
+  // e.g. 'my-project-skill',
+]);
+
+// ---------------------------------------------------------------------------
+// Generated / appended output paths (relative to repo root, forward slashes)
+// ---------------------------------------------------------------------------
+
+export const OUTPUT = {
+  INDEX_MD: 'docs/INDEX.md',
+  INDEX_JSON: 'docs/index.json',
+  ACTIVITY_LOG: 'docs/activity_log.jsonl',
+  SESSION_FILE: '.claude/log_session',
+};
+
+/**
+ * Document tree the corpus scripts walk and key paths they read/derive. The
+ * walk root is the repo root; collectMdFiles() honors EXCLUDED_DIRS /
+ * EXCLUDED_ROOT_FILES above. These globs/paths are the conventional Tier-B doc
+ * locations the lifecycle scaffold writes (relative to repo root, forward
+ * slashes); keep them in sync with the scaffold layout.
+ */
+export const DOC_PATHS = {
+  // Roots walked / indexed
+  DOCS_ROOT: 'docs',
+  KNOWLEDGE_BASE: 'docs/knowledge_base',
+  CLAUDE_TASKS: 'docs/claude_tasks',
+  AUDITS: 'docs/audits',
+  // Canonical SSOT docs
+  STRATEGY: 'docs/strategy.md',
+  ARCHITECTURE: 'docs/architecture.md',
+  CHRONICLE: 'docs/project_chronicle.md',
+  // Globs (forward-slash; callers normalize the relative path before testing)
+  MD_GLOB: 'docs/**/*.md',
+  TASK_GLOB: 'docs/claude_tasks/**/*.md',
+  ALPHA_TEST_GLOB: 'docs/claude_tasks/alpha_tests/**/*.md',
+};
+
+// ---------------------------------------------------------------------------
+// Git connection (committed identity — no secrets)
+// ---------------------------------------------------------------------------
+
+/**
+ * The repo this framework runs in. `branch` is the working branch captured at
+ * scaffold time (1 ticket = 1 branch = 1 PR); `defaultBranch` is the PR base
+ * (main/master); `repo` is the origin URL. GITHUB_TOKEN, if any, lives in
+ * .claude/.local/secrets.env — never here.
+ */
+export const git = {
+  branch: '{{GIT_BRANCH}}',
+  defaultBranch: '{{GIT_DEFAULT_BRANCH}}',
+  repo: '{{GITHUB_REPO}}',
+};
+
+// ---------------------------------------------------------------------------
+// Databricks connection (committed config — no secrets)
+// ---------------------------------------------------------------------------
+
+/**
+ * Databricks wiring for the data stack. NON-SECRET configuration only:
+ *   enabled       on/off (string) — gate; when 'off', the maps are empty.
+ *   envs          environments in use, comma list (e.g. 'dev,qa,prod').
+ *   profile       default ~/.databrickscfg profile/env for everyday work.
+ *   defaultHost   workspace URL for the default profile.
+ *   hosts         per-env workspace URL map  ({"dev":"https://...", ...}).
+ *   warehouses    per-env SQL warehouse id map ({"dev":"abc123", ...}).
+ *
+ * Hosts and warehouse ids are configuration, not secrets, but per the data-stack
+ * rules they must NOT be hardcoded inside scripts — they are read from
+ * here. Local SQL uses databricks-sql-connector; auth is OAuth via
+ * w.config.authenticate() (never raw tokens); on Windows set
+ * PYTHONIOENCODING=utf-8 (in .claude/.local/secrets.env). ~/.databrickscfg is
+ * the source of truth for profiles/hosts.
+ */
+export const databricks = {
+  enabled: '{{DATABRICKS}}',
+  envs: '{{DATABRICKS_ENVS}}',
+  profile: '{{DATABRICKS_PROFILE}}',
+  defaultHost: '{{DATABRICKS_DEFAULT_HOST}}',
+  hosts: {{DATABRICKS_HOSTS_JSON}},
+  warehouses: {{DATABRICKS_WAREHOUSES_JSON}},
+};
+
+// ---------------------------------------------------------------------------
+// Validator rules configuration
+// ---------------------------------------------------------------------------
+
+/**
+ * Project-specific validator deltas. DROPPED_RULES lets a project switch off
+ * rules that don't apply to its stack without editing the validator. The
+ * ALPHA_TEST block enforces the freeze discipline: alpha tests are designed by
+ * the DA only (designed_by: da) and may only carry a status from the restricted
+ * alpha-test vocabulary (draft → sealed → passed/failed).
+ */
+export const VALIDATOR = {
+  DROPPED_RULES: [],
+  ALPHA_TEST: {
+    DESIGNED_BY: 'da',
+    STATUS_ENUM: ALPHA_TEST_STATUS_ENUM,
+  },
+};

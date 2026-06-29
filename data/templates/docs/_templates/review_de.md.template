@@ -1,0 +1,93 @@
+---
+type: review
+title: "DE Step 5 Spec Review — <placeholder: ticket id> / Task <placeholder: NN>"
+ticket: <placeholder: ticket id, or null>
+status: done
+authority: secondary
+protection: normal
+affects: []
+depends_on: []
+created: <placeholder: YYYY-MM-DD>
+updated: <placeholder: YYYY-MM-DD>
+tags: []
+reviewer: de
+task_number: <placeholder: integer>
+verdict: approve_with_fixes
+critical_count: 0
+high_count: 0
+---
+
+<!-- DELETE THIS HEADER BEFORE PUBLISHING -->
+
+# DE Step 5 Spec Review — <placeholder: ticket id> / Task <placeholder: NN>
+
+<!-- guidance: File goes in docs/claude_tasks/reviews/YYYY-MM-DD_NN_de_review.md.
+     Verdict options: approve | approve_with_fixes | reject_needs_rework.
+     This is the Step 5 feasibility review. Pushback is a duty — if the spec is wrong,
+     say so with reasoning. Reference actual file reads and executed read-only probes —
+     NEVER audit from memory. -->
+
+> Reviewer: de
+> Date: <placeholder: YYYY-MM-DD>
+> Spec audited: `docs/claude_tasks/<NN>_<slug>.md`
+> Verdict: <placeholder: APPROVE | APPROVE_WITH_FIXES | REJECT_NEEDS_REWORK>
+
+---
+
+## Summary
+
+<!-- guidance: 2-4 sentences. Is the spec implementable as written? What are the top concerns? -->
+
+---
+
+## Critical findings (Cn)
+
+<!-- guidance: Issues that block implementation.
+     Each finding: title, evidence (file:line), suggested fix.
+     "No critical findings." if none. -->
+
+---
+
+## High findings (Hn)
+
+<!-- guidance: Issues that require spec changes but don't fully block.
+     Each finding cites specific evidence from reading actual files. -->
+
+---
+
+## Medium findings (Mn)
+
+<!-- guidance: Documentation gaps, unclear validation criteria, missing edge cases. -->
+
+---
+
+## Low findings (Ln)
+
+<!-- guidance: Minor clarifications, typos, naming inconsistencies. -->
+
+---
+
+## Effort re-estimation
+
+<!-- guidance: If findings add scope, estimate the delta. -->
+
+Original estimate: <placeholder>h
+Revised estimate: <placeholder>h
+Delta: <placeholder>
+
+---
+
+## Probes executed
+
+<!-- guidance: List every file read and command run during this review.
+     The DE audits the real repo state, not assumed state. -->
+
+- Read `docs/claude_tasks/<NN>_<slug>.md` — full spec
+- Read `<placeholder>` — confirmed: <placeholder>
+- Ran `<placeholder read-only probe>` — returned <placeholder>
+
+---
+
+## Recommendation
+
+<!-- guidance: APPROVE | APPROVE_WITH_FIXES | REJECT_NEEDS_REWORK with a numbered must-fix list. -->

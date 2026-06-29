@@ -1,0 +1,43 @@
+---
+type: rule
+title: Dependency Governance Rule
+status: active
+authority: ssot
+affects: []
+created: "{{TODAY}}"
+updated: "{{TODAY}}"
+tags: []
+---
+
+# Dependency Governance Rule
+
+A new dependency is a permanent liability: supply-chain risk, maintenance burden, and
+attack surface. Treat every addition as a decision of record, not a convenience.
+
+## Before adding ANY new dependency
+
+1. **Already present?** Check the project's manifest and lockfile — don't add a duplicate
+   or a near-equivalent of something already vendored.
+2. **Vanilla-first.** Can this be done with the language/standard library or a primitive
+   the stack already ships? Prefer the native solution over a new dependency.
+3. **Verify it** before trusting it:
+   - Last release date — reject if abandoned (no meaningful activity in ~12 months).
+   - Open security advisories / known CVEs on the package and its transitive tree.
+   - Adoption signal (downloads, dependents, maintainer responsiveness).
+   - License compatibility with this project.
+4. **Justify it** — record *why* it is needed (and why vanilla won't do) in the task report.
+5. **Pin it** — use an exact version in the manifest; never an open/`latest` range.
+6. **Escalate non-trivial additions** via `/council` — anything that adds significant
+   surface, a new transitive tree, or a long-term commitment is a contested decision.
+
+## Before updating an existing dependency
+
+1. Read the CHANGELOG / release notes for breaking changes.
+2. Check the target version for new advisories.
+3. Run the full test suite after updating; verify the affected surfaces still work.
+
+## Hard rules
+- NEVER add a dependency without explaining WHY in the task report.
+- Prefer a standard-library / built-in solution over a new dependency.
+- Pin exact versions; remotely-loaded resources (CDN, etc.) point to a specific version, never `latest`.
+- Remove a dependency when its last consumer is deleted — dead dependencies are still liabilities.

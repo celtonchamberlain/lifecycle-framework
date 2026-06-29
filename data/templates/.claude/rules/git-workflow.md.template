@@ -1,0 +1,43 @@
+---
+type: rule
+title: Git Workflow Rules
+status: active
+authority: ssot
+affects: []
+created: "{{TODAY}}"
+updated: "{{TODAY}}"
+tags: []
+---
+
+# Git Workflow Rules
+
+## Commit Messages
+- Conventional commits: `feat:`, `fix:`, `refactor:`, `docs:`, `test:`, `chore:`, `perf:`, `build:`, `ci:`.
+- Scope in parentheses when useful: `fix(auth): correct token refresh`.
+- Present tense, imperative mood: "add feature", not "added feature".
+- Reference the ticket when applicable, using this project's ticket prefix (`{{TRACKER_KEY}}`):
+  `fix(auth): correct token refresh ({{TRACKER_KEY}}-123)`.
+
+## The unit of work
+- **1 ticket = 1 branch = 1 PR.** Each task gets its own branch off the integration branch
+  and lands as a single reviewable pull request.
+- Branch names are descriptive and tied to the ticket: `feat/{{TRACKER_KEY}}-123-short-description`,
+  `fix/{{TRACKER_KEY}}-124-short-description`.
+
+## What to Commit
+- Working code only — every commit should leave the project in a runnable state.
+- One logical change per commit — don't mix a feature with an unrelated refactor.
+- Keep tightly-coupled changes (e.g. an interface and its callers) in the same commit.
+
+## What NOT to Commit
+- `.env` files or anything containing secrets, tokens, or credentials.
+- Build artifacts and dependency directories (e.g. `node_modules/`, `__pycache__/`, `dist/`, `build/`).
+- Editor/IDE-local and OS files (`.vscode/`, `.idea/`, `.DS_Store`, `Thumbs.db`).
+- Generated handoff state that is meant to be local: `docs/context_snapshot.md`.
+- Large binaries that don't belong in version control.
+
+## Never
+- Force-push (`git push --force`) to a shared branch.
+- `git reset --hard`, `git clean -f`, or any history-rewriting/destructive command without explicit approval.
+- Commit directly to the protected/default branch when review is expected.
+- Leave merge conflicts unresolved or commit conflict markers.

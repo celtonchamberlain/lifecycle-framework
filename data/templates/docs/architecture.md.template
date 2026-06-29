@@ -1,0 +1,89 @@
+---
+type: doc
+title: "{{PROJECT_NAME}} — Architecture"
+ticket: null
+status: active
+authority: ssot
+protection: protected
+affects: []
+depends_on: []
+created: "{{TODAY}}"
+updated: "{{TODAY}}"
+tags: [architecture]
+owner: human
+stack: {{STACK}}
+last_audited: "{{TODAY}}"
+---
+
+# {{PROJECT_NAME}} — Architecture
+
+> **How the system is built TODAY** — the live topology, not the plan (the plan is
+> `strategy.md`). **Protected:** the PM proposes changes at close; the human authorizes.
+> **Re-audited from live sources, never recalled from memory:** at close, on the trigger
+> matrix, the PM re-reads the real system and updates this file. `last_audited` records when.
+>
+> **This file is seeded as a STUB at init.** It is intentionally mostly empty — fill it from
+> the real system as it is built, not from assumptions. An empty section is honest; an
+> invented one is a liability.
+
+---
+
+## §1. System overview
+
+<!-- guidance: One diagram or short narrative of the whole system as it exists now —
+     the major components and how data/control flows between them. Update when the topology
+     changes. Stack = {{STACK}}. -->
+
+```
+<placeholder: components and the flow between them>
+```
+
+---
+
+## §2. Components
+
+<!-- guidance: One row per live component (service, module, job, store). What it is, where
+     it runs, what it owns. Only list what actually exists. -->
+
+| Component | Responsibility | Where it runs / lives |
+|-----------|----------------|-----------------------|
+| <placeholder> | <placeholder> | <placeholder> |
+
+---
+
+## §3. Data model / interfaces
+
+<!-- guidance: The live data shapes and contracts — tables/entities and relationships for a
+     data/web stack; module/API boundaries for a generic stack. Use exact names from the
+     real system. This is the section reviewers cite when asking "what depends on this?". -->
+
+---
+
+## §4. Data / control flow
+
+<!-- guidance: How a request or a record moves through the system end to end. Name the entry
+     point, the transformations, the outputs. -->
+
+---
+
+## §5. Tech stack
+
+<!-- guidance: Languages, frameworks, runtimes, key dependencies, external services actually
+     in use. Versions where they matter. Build/run commands live in CLAUDE.md. -->
+
+---
+
+## §6. Integration points & external dependencies
+
+<!-- guidance: Everything the system talks to that it does not own — third-party APIs,
+     upstream data sources, auth providers, MCP servers. Note the failure mode of each. -->
+
+---
+
+## §7. Audit log
+
+<!-- guidance: One line per re-audit performed at close. "Audited <date> after <trigger>;
+     changed <what>." The freshness guarantee: this file is verified against live sources,
+     not memory. -->
+
+- {{TODAY}} — Seeded as a stub at init. Not yet audited against a live system.

@@ -1,0 +1,41 @@
+---
+type: rule
+title: Search-First Rule
+status: active
+authority: ssot
+affects: []
+created: "{{TODAY}}"
+updated: "{{TODAY}}"
+tags: []
+---
+
+# Search-First Rule
+
+Before editing any existing file, you MUST understand its blast radius first.
+
+1. **Read the file** — understand its current state, structure, and purpose.
+2. **Check who depends on it (inbound)** — find everything that imports, includes, links to,
+   or references this file or its exported symbols. These are what you can break.
+3. **Check what it depends on (outbound)** — understand its own dependencies so you don't
+   silently change behavior it relies on.
+4. **Check sibling/related files** — when editing one of a set that must stay consistent
+   (parallel pages, parallel modules, a shared interface and its implementations), inspect
+   the others for consistency.
+5. **Check the tests** — read the tests covering this file before changing it, so you know
+   what behavior is contractually expected.
+
+## When this applies
+- ANY edit to an existing source file.
+- ANY rename or move (these change every inbound reference).
+- ANY change to a shared/exported symbol used across multiple files.
+- ANY change to a shared interface, type, schema, or contract.
+
+## When this does NOT apply
+- Creating brand-new files with no existing dependents.
+- Purely additive documentation edits with no consumers.
+
+## Rationale
+Understanding what depends on a file before editing prevents cascading breakage. A short
+read up front saves far more debugging later. This is the per-edit complement to the
+corpus's `affects-lookup` reverse index and the `scout` agent (if enabled) — for code edits,
+do the read manually before you touch the file.

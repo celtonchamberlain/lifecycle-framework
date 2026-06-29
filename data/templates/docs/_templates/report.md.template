@@ -1,0 +1,94 @@
+---
+type: report
+title: "Task <placeholder: NN>: <placeholder: title> — Implementation Report"
+ticket: <placeholder: ticket id, or null>
+status: done
+authority: secondary
+protection: normal
+affects: []
+depends_on: []
+created: <placeholder: YYYY-MM-DD>
+updated: <placeholder: YYYY-MM-DD>
+tags: []
+task_number: <placeholder: integer>
+code_reviewer_findings: { critical: 0, warning: 0, suggestion: 0, schema: 0 }
+deployed: false
+---
+
+<!-- DELETE THIS HEADER BEFORE PUBLISHING -->
+
+# Task Report — Task <placeholder: NN>: <placeholder: title>
+
+<!-- guidance: File goes in docs/claude_tasks/reports/YYYY-MM-DD_NN_slug_report.md.
+     This is the DE Step 7 deliverable. Link it to its spec via depends_on (the spec path).
+     The code-reviewer gate is mandatory before any deploy/commit of production code.
+     The PM reads this report at Step 8 and checks it against the spec's acceptance criteria;
+     the DA executes the frozen alpha test in parallel. -->
+
+---
+
+## Summary
+
+<!-- guidance: 2-3 sentences: what was done, what changed, why it matters. -->
+
+---
+
+## File inventory
+
+| File | Action | Description |
+|------|--------|-------------|
+| `<placeholder>` | created \| modified | <placeholder> |
+
+---
+
+## Spec deviations
+
+<!-- guidance: List every deviation from the spec, with justification.
+     Justification must be substantive — "seemed better" is not acceptable.
+     If none: write "No deviations from spec." -->
+
+- **Deviation:** <placeholder>
+  - **Justification:** <placeholder>
+
+---
+
+## Validation results
+
+| Check | Result | Notes |
+|-------|--------|-------|
+| <placeholder from spec §8 Validation> | PASS \| FAIL | <details> |
+
+---
+
+## Self-review confirmation
+
+<!-- guidance: This is the DE self-review checklist (the first of the three review layers).
+     Keep the rows identical to the checklist in the de agent definition. -->
+
+| # | Check | Status |
+|---|-------|--------|
+| 1 | Function / interface signatures match callers | check |
+| 2 | Config values not hardcoded (no credentials, hosts, ids) | check |
+| 3 | No security vulnerabilities (injection, secret leakage, missing validation) | check |
+| 4 | Error handling on all external calls | check |
+| 5 | No tokens / secrets in code | check |
+| 6 | No destructive operations without an approval path | check |
+| 7 | Logging follows project conventions | check |
+| 8 | No stale comments or dead code | check |
+| 9 | Tests added / updated where the change warrants them | check |
+| 10 | Build and tests pass locally | check |
+| 11 | The spec's §8 validation checks all pass | check |
+
+[All 11 points verified — <placeholder: YYYY-MM-DD>]
+
+---
+
+## Lessons learned
+
+<!-- guidance: Schema surprises, platform quirks, patterns discovered. -->
+
+---
+
+## MCP memory writes
+
+<!-- guidance: List entity/observation names written to MCP memory. If none: "No new memory entries." -->

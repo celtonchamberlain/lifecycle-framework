@@ -1,0 +1,49 @@
+---
+type: rule
+title: Security Rules
+status: active
+authority: ssot
+affects: []
+created: "{{TODAY}}"
+updated: "{{TODAY}}"
+tags: []
+---
+
+# Security Rules
+
+> Stack-agnostic baseline. A stack with its own security profile (web app, data pipeline,
+> service) adds rules on top — record those in `CLAUDE.md`. Nothing here is optional.
+
+## Secrets Management
+- NEVER hardcode API keys, tokens, passwords, connection strings, or credentials in source.
+- Read secrets from environment variables or a secrets manager — never from committed files.
+- `.env` and any local secrets file must be gitignored; this project keeps them in
+  `.claude/.local/` (gitignored).
+- No secrets in comments, logs, error messages, test fixtures, or sample data.
+
+## Input Handling
+- Treat all external input as untrusted: validate at the boundary, then trust internally.
+- Validate on the authoritative side (the server / the trusted process) — client-side
+  checks are UX, not security.
+- Allow-list expected shapes/values rather than block-listing bad ones where possible.
+
+## Injection
+- Use parameterized queries / prepared statements for any data store — never build a query
+  by string concatenation of untrusted input.
+- Escape or contextually encode untrusted data at the point it is rendered or interpolated
+  (HTML, shell, query, template).
+- Never pass untrusted input to a shell or `eval`-like construct.
+
+## Output & Error Hygiene
+- Do not leak internal errors, stack traces, secrets, or internal paths to users or logs
+  that cross a trust boundary.
+- Fail closed: on an auth/validation error, deny — do not fall through to a permissive path.
+
+## Dependencies & Supply Chain
+- Pin dependency versions; track and remediate known advisories (see `dependency-governance.md`).
+- Load remote/third-party resources only from trusted sources, pinned to a specific version,
+  with integrity verification where the platform supports it.
+
+## Access & Least Privilege
+- Grant the minimum privilege required; scope tokens and roles narrowly.
+- Read-only by default for analysis/inspection paths; mutation requires explicit intent and approval.

@@ -1,0 +1,83 @@
+---
+type: review
+title: "Code Review — Task <placeholder: NN>: <placeholder: title>"
+ticket: <placeholder: ticket id, or null>
+status: done
+authority: secondary
+protection: normal
+affects: []
+depends_on: []
+created: <placeholder: YYYY-MM-DD>
+updated: <placeholder: YYYY-MM-DD>
+tags: []
+reviewer: code-reviewer
+task_number: <placeholder: integer>
+verdict: SAFE
+critical_count: 0
+warning_count: 0
+---
+
+<!-- DELETE THIS HEADER BEFORE PUBLISHING -->
+
+# Code Review — Task <placeholder: NN>: <placeholder: title>
+
+<!-- guidance: File goes in docs/claude_tasks/reviews/YYYY-MM-DD_NN_code-reviewer_review.md.
+     The code-reviewer (formerly "heimdall") is the mandatory code-review gate before any
+     deploy/commit of production code (docs-only changes are exempt). It is READ-ONLY:
+     do not modify any code file — return this review as text and describe fixes only.
+     Severity tiers: CRITICAL / WARNING / SUGGESTION / SCHEMA.
+     Verdict enum: SAFE | NON-BLOCKING | NOT SAFE.
+     ANY CRITICAL finding = NOT SAFE TO DEPLOY. The reviewer never approves its own work. -->
+
+> **Reviewer:** code-reviewer (formerly heimdall)
+> **Date:** <placeholder: YYYY-MM-DD>
+> **Files reviewed:** <placeholder: list>
+> **Verdict:** <placeholder: SAFE | NON-BLOCKING | NOT SAFE>
+
+---
+
+## Verdict summary
+
+<!-- guidance: State the verdict at the top. If NOT SAFE, list every CRITICAL finding here
+     first. Any single CRITICAL forces NOT SAFE — there is no override at this gate. -->
+
+---
+
+## Findings
+
+### CRITICAL (C#) — Block deploy until resolved
+
+<!-- guidance: Security vulnerabilities, auth bypasses, injection, data-loss risks,
+     correctness bugs that corrupt state or return wrong results.
+     Format: **CX — Short title** / File: path:line / Finding: description / Fix: required action.
+     If none: "No CRITICAL findings." -->
+
+### WARNING (W#) — Must fix in current PR
+
+<!-- guidance: Functional bugs, missing error handling, broken calls, contract gaps that
+     do not corrupt state but will misbehave. If none: "No WARNING findings." -->
+
+### SUGGESTION (S#) — Address in follow-up
+
+<!-- guidance: Maintainability, readability, non-blocking improvements. -->
+
+### SCHEMA (SC#) — Data / interface-contract observations
+
+<!-- guidance: Schema drift, type mismatches, migration-ordering risks, contract changes
+     that affect downstream consumers. n/a if the change touches no schema/interface. -->
+
+---
+
+## Checklist
+
+| Check | Status | Notes |
+|-------|--------|-------|
+| No hardcoded secrets or tokens | pass \| fail | |
+| Config read from settings/env, not literals | pass \| fail | |
+| Error handling on all external calls | pass \| fail | |
+| Input validation / parameterized queries (no injection) | pass \| fail | n/a if no external input |
+| No untyped escape hatches where the project requires types | pass \| fail | n/a if untyped stack |
+| Authorization / access checks correct | pass \| fail | n/a if no auth surface |
+| No destructive operations without an approval path | pass \| fail | |
+| Tests cover the changed behavior | pass \| fail | |
+| Matches the frozen spec (no silent scope change) | pass \| fail | |

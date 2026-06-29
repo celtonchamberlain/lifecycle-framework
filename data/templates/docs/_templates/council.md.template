@@ -1,0 +1,99 @@
+---
+type: council
+title: "Council — <placeholder: topic>"
+ticket: <placeholder: ticket id, or null>
+status: pending
+authority: ssot
+protection: normal
+affects: []
+depends_on: []
+created: <placeholder: YYYY-MM-DD>
+updated: <placeholder: YYYY-MM-DD>
+tags: []
+topic: <placeholder>
+decision_id: <placeholder: integer — the strategy.md Decision Log id this adds>
+participants: [pm, de, da, code-reviewer, devils-advocate]
+---
+
+<!-- DELETE THIS HEADER BEFORE PUBLISHING -->
+
+# Council Verdict — <placeholder: topic>
+
+<!-- guidance: File goes in docs/claude_tasks/council/YYYY-MM-DD_slug_council.md.
+     Council verdicts are SSOT — they record permanent decisions and their reopen criteria.
+     status: pending until the human delivers the verdict, then decided | open.
+     The devils-advocate is a MANDATORY participant on every Council.
+     7-step protocol: PM frames the question → each role responds → devils-advocate attacks →
+     PM synthesizes → human confirms → reopen criteria recorded → in-session next steps. -->
+
+> **Topic:** <placeholder>
+> **Decision ID:** #<placeholder> (adds to `docs/strategy.md` Decision Log)
+> **Date:** <placeholder: YYYY-MM-DD>
+> **Participants:** pm, de, da, code-reviewer, devils-advocate
+
+---
+
+## §1. Question framed by PM
+
+<!-- guidance: The exact question put to the council. Must be specific and bounded. -->
+
+---
+
+## §2. DE position
+
+<!-- guidance: Technical feasibility, implementation risk, maintenance cost. -->
+
+---
+
+## §3. DA position
+
+<!-- guidance: Data / output implications, metrics, measurement approach. -->
+
+---
+
+## §4. Code-reviewer position
+
+<!-- guidance: Security, correctness, attack surface, deploy-safety implications. -->
+
+---
+
+## §5. Devil's-advocate attack
+
+<!-- guidance: The grounded adversarial case. What would make this decision wrong in 6 months?
+     Every attack cites evidence (grounded-dissent protocol). -->
+
+---
+
+## §6. PM synthesis
+
+<!-- guidance: Reconcile the positions. State the recommendation with reasoning. -->
+
+---
+
+## §7. Human verdict
+
+<!-- guidance: The final decision, confirmed by the human in chat.
+     Flip frontmatter status: pending → decided once this is filled. -->
+
+**Decision: <placeholder>**
+
+Rationale: <placeholder>
+
+---
+
+## Reopen criteria
+
+<!-- guidance: Under what conditions may this decision be reopened? Be concrete — a metric
+     threshold, a new constraint, a failed assumption. A council decision without reopen
+     criteria is incomplete. -->
+
+- <placeholder>
+
+---
+
+## Next steps
+
+<!-- guidance: PM-owned next steps that MUST execute IN-SESSION (not deferred). -->
+
+1. <placeholder>
+2. <placeholder>

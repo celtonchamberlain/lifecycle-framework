@@ -1,0 +1,3 @@
+# Normalize line endings: store LF in the repo so the Python hook and shipped
+# scripts work on every platform (and the published tree stays clean).
+* text=auto eol=lf

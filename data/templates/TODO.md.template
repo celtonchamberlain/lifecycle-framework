@@ -1,0 +1,63 @@
+---
+type: doc
+title: "{{PROJECT_NAME}} — Roadmap"
+ticket: null
+status: living
+authority: secondary
+protection: protected
+affects: []
+depends_on: []
+created: "{{TODAY}}"
+updated: "{{TODAY}}"
+tags: [roadmap, todo]
+owner: human
+related_decisions: []
+---
+
+# {{PROJECT_NAME}} — Roadmap
+
+> **The dependency-ordered task route** — the single ordered "what's next", independent of
+> any chat context. Mirrors the tracker ({{TRACKER}}) so the plan survives outside it.
+>
+> **Protected:** the human owns the content. Agents perform **status-sync only**, and only via
+> `/close-task` (Step 10). No agent reorders, adds, or removes route items on its own — it
+> proposes a change and the human authorizes. When `{{TRACKER}}` is a real tracker, that
+> tracker is the source of truth for ticket *status*; this file is the source of truth for
+> *sequence and dependencies* (the Gantt view).
+>
+> Status markers: `Ready` · `In Progress` · `Blocked` · `Done`
+
+---
+
+## How to read this route
+
+- Items are listed in **dependency order** — top to bottom is the intended execution sequence.
+- "Blocked by" names the item(s) that must complete first. Never start a blocked item.
+- One item = one ticket = one branch = one PR (the git-workflow rule).
+- Tracker connection: `{{TRACKER}}` / org `{{TRACKER_ORG}}` / project `{{TRACKER_PROJECT}}` /
+  prefix `{{TRACKER_KEY}}`. (Empty if the project runs on this local route only.)
+
+---
+
+## Phase 0 — Bootstrap
+
+| Status | Item | Ticket | Blocked by |
+|--------|------|--------|------------|
+| Done | Initialize the project with the Lifecycle Framework (governance corpus scaffolded). | — | — |
+| Ready | First Brief: define the initial task with the human (Step 1). | {{TRACKER_KEY}}-<placeholder, or "local"> | — |
+
+<!-- guidance: Replace the "First Brief" row with the real starting ticket. If a start_ticket
+     was given at init, seed it here. Add subsequent items in dependency order below, grouped
+     into phases that match the project's plan in docs/strategy.md §7.
+
+     Row template:
+     | Ready \| In Progress \| Blocked \| Done | <short title> | {{TRACKER_KEY}}-NNN | <ticket id or "unblocked"> | -->
+
+---
+
+## Next up
+
+<!-- guidance: The 1-3 items the project will pick up next, in order. Keep this short — it is
+     the at-a-glance "what now". Updated by /close-task as items complete. -->
+
+1. <placeholder>

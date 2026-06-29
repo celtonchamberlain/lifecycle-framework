@@ -1,0 +1,143 @@
+---
+type: spec
+title: "<placeholder: short title>"
+ticket: <placeholder: ticket id, e.g. ABC-123, or null>
+status: draft
+authority: secondary
+protection: normal
+affects: []
+depends_on: []
+created: <placeholder: YYYY-MM-DD>
+updated: <placeholder: YYYY-MM-DD>
+tags: []
+task_number: <placeholder: integer>
+domain: <placeholder: auth | ui | perf | data | infra | content | docs | tooling>
+phase: <placeholder: investigation | mvp | post-mvp>
+---
+
+<!-- DELETE THIS HEADER BEFORE PUBLISHING -->
+
+# Task <placeholder: NN> · <placeholder: ticket id> · <placeholder: title>
+
+<!-- guidance: File goes in docs/claude_tasks/NN_slug.md.
+     task_number = integer matching the NN_ prefix of the filename.
+     ticket = the tracker ticket id using THIS project's prefix (read it from
+     corpus.config.mjs / .claude/settings.json), or null explicitly.
+     authority: secondary = the spec is context, not SSOT — the sealed alpha test
+     (docs/claude_tasks/alpha_tests/NN_slug.md) is the SSOT for acceptance at Step 8.
+     affects: uses the project frontmatter grammar (see .claude/rules/frontmatter.md). -->
+
+> **Tracker:** <placeholder: link to the ticket, or "local TODO.md only">
+> **Started:** <placeholder: YYYY-MM-DD>
+> **Lifecycle owner:** pm (Step 3 spec) → de (Step 7 implementation) → da (Step 8 frozen alpha test)
+
+---
+
+## §1. Context
+
+<!-- guidance: 2-3 sentences. What exists today? Why does this task exist?
+     Link to relevant chronicle entries, strategy/architecture sections, or prior specs.
+     If a Step 2 data analysis exists for this brief, link it here. -->
+
+---
+
+## §2. Objective
+
+<!-- guidance: What does success look like? Be measurable. -->
+
+---
+
+## §3. Reference files (mandatory reads)
+
+<!-- guidance: List every file the DE must read before writing code. Paths from repo root. -->
+
+- `CLAUDE.md`
+- `docs/strategy.md` §<placeholder: relevant section>
+- `docs/architecture.md` §<placeholder: relevant section>
+- `docs/knowledge_base/<placeholder>`  <!-- relevant domain docs for the area touched -->
+
+---
+
+## §4. Schema / interface reference
+
+<!-- guidance: Populated by the PM at Step 3. For each entry in the spec's frontmatter
+     `affects:` array that names a data or interface surface, paste the relevant
+     schema/type/contract section verbatim below (names, types, grain, relationships).
+     Skip this section entirely if `affects:` names no such surface. Re-paste if
+     `affects:` mutates during spec revision. Never reconstruct a schema from memory. -->
+
+---
+
+## §5. Inputs
+
+<!-- guidance: Tables, fields, APIs, files, configs to read.
+     Use exact names from the knowledge base / schema docs — never from memory. -->
+
+---
+
+## §6. Required outputs
+
+<!-- guidance: Files to create or modify. Be explicit — path, action, what it should contain. -->
+
+| Path | Action | Description |
+|------|--------|-------------|
+| `<placeholder>` | create \| modify | <placeholder> |
+
+---
+
+## §7. Implementation steps
+
+<!-- guidance: Numbered, specific enough that the DE can follow without asking.
+     Each step should be 1 commit if multi-step. -->
+
+1. <placeholder>
+2. <placeholder>
+
+---
+
+## §8. Validation
+
+<!-- guidance: How to verify the task is done — checks, queries, manual steps, scores.
+     The DE runs these at Step 7. These do NOT replace the frozen alpha test —
+     the DA executes that separately at Step 8. -->
+
+| Check | Expected | How to verify |
+|-------|----------|---------------|
+| <placeholder> | <placeholder> | <placeholder> |
+
+---
+
+## §9. Constraints
+
+<!-- guidance: What NOT to do. Dependency governance: any new library must be justified. -->
+
+- Do NOT modify `TODO.md` — only `/close-task` touches it (Step 10).
+- Never hardcode credentials, connection strings, or environment-specific identifiers — use config files, environment variables, or profile settings.
+- Protected files require explicit human approval in chat: `CLAUDE.md`, `.claude/settings.json`, `.claude/hooks/*`, `TODO.md`, `docs/strategy.md`, `docs/architecture.md`.
+- <placeholder: task-specific constraints, or "none beyond the above">
+
+---
+
+## §10. Out of scope
+
+<!-- guidance: Prevent scope creep. Be explicit about what this task does NOT cover. -->
+
+---
+
+## §11. Acceptance criteria
+
+<!-- guidance: Objective, measurable. The DA derives the alpha test from these at Step 4
+     (from the spec ONLY — never from the implementation). The PM checks the implementation
+     report against these at Step 8. -->
+
+- **AC1** <placeholder>
+- **AC2** <placeholder>
+
+---
+
+## §12. Revision log
+
+<!-- guidance: Step 5 review findings (DE + devils-advocate) applied here by the PM at
+     Step 6 (Resolve). One entry per revision. If the spec changes after Step 4, the DA
+     refreshes the alpha test before it seals — note that refresh here.
+     Example: "Rev 1 — C1 fix: added missing currency dimension to §5 Inputs (DE review YYYY-MM-DD)" -->

@@ -1,0 +1,69 @@
+---
+type: doc
+title: "{{PROJECT_NAME}} — Project Chronicle"
+ticket: null
+status: living
+authority: ssot
+protection: append-only
+affects: []
+depends_on: []
+created: "{{TODAY}}"
+updated: "{{TODAY}}"
+tags: [chronicle, decisions]
+owner: human
+related_decisions: []
+---
+
+# {{PROJECT_NAME}} — Project Chronicle
+
+> **The book of strategic decisions and findings — APPEND-ONLY.** One entry per completed
+> task (and per strategic decision): what was done, key findings, decisions, questions
+> raised/resolved, next action. Entries are added, never edited or deleted.
+>
+> A ticket spans many tasks; memory does not. This file keeps the reasoning. It is **cited as
+> incident history** by the code-reviewer and the devils-advocate to ground their objections
+> in what actually happened before. Task-level machine trace lives in
+> `docs/activity_log.jsonl`; ticket status lives in the tracker; this file records only what
+> changes the project's direction or carries a lesson forward.
+>
+> **Write at close** (`/close-task`, Step 10). Newest entries go at the bottom (append).
+
+---
+
+## {{TODAY}} — Project founded; Lifecycle Framework adopted
+
+**Context:** {{PROJECT_NAME}} initialized with the Lifecycle Framework — a role-specialized
+AI team (pm, de, da, code-reviewer, devils-advocate) running a 10-step lifecycle per task,
+with a governed documentation corpus.
+
+**Decisions:**
+
+1. **Framework:** adopt the Lifecycle Framework. One session runs exactly one task (Brief →
+   Close), never a whole ticket.
+2. **Lifecycle:** 10 steps. The alpha test is designed before any code (Step 4) and **frozen**
+   before implementation (Step 6) — the bias-control spine: a test that cannot be tailored to
+   the result it judges.
+3. **Document semantics:** `strategy.md` = the goal (protected); `architecture.md` = the live
+   system (protected, re-audited from sources); this file = the strategic decision book
+   (append-only); `activity_log.jsonl` = the machine audit trail; `TODO.md` = the
+   tracker-mirrored route (protected).
+4. **Corpus governance:** frontmatter taxonomy (`type` / `status` / `authority` / `protection`),
+   templates under `docs/_templates/`, and a corpus index gated by the pre-push hook and CI.
+
+**Rationale:** governance-first sequencing — the project must be traceable from its first
+task. Building governance later would leave early work undocumented.
+
+**Next action:** the PM reads `CLAUDE.md`, `TODO.md`, and this chronicle, then begins the
+lifecycle at Step 1 (Brief).
+
+<!-- guidance: Append the next entry BELOW this line. Template for a task entry:
+
+## YYYY-MM-DD — <short title> (<ticket id>)
+
+**Context:** <why this task existed>
+**Summary:** <what was done>
+**Key findings / decisions:** <what was learned or decided of record>
+**Questions raised / resolved:** <open or closed questions>
+**Alpha test:** <PASSED | FAILED | N/A for research/investigation tasks>
+**Next action:** <the single next thing>
+-->

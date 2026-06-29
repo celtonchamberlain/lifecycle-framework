@@ -1,0 +1,47 @@
+---
+type: doc
+title: "Context Snapshot — {{TODAY}}: project initialized"
+ticket: null
+status: snapshot
+authority: secondary
+protection: normal
+affects: []
+depends_on: []
+created: "{{TODAY}}"
+updated: "{{TODAY}}"
+tags: [snapshot]
+---
+
+# Context Snapshot
+
+> **The single "where we are" handoff for the next session.** Current state only — NOT
+> history (that is `project_chronicle.md`). Kept short, facts only. **Overwritten on every
+> close** (`/close-task`, Step 10) — the deliberate overwrite is what keeps it a snapshot, not
+> a log. Usually gitignored; if it syncs by another means (e.g. a synced drive), say so here
+> and note that MCP memory may NOT travel with it.
+
+## State in force (read first)
+
+- Project `{{PROJECT_NAME}}` initialized with the Lifecycle Framework on {{TODAY}}.
+- No task is in progress yet. The lifecycle starts at Step 1 (Brief) with the human.
+
+## What the last session did
+
+- `/lifecycle-init` scaffolded the governance corpus (strategy, architecture stub, chronicle,
+  this snapshot, the empty activity log, `_templates/`, `claude_tasks/`, knowledge base).
+
+## OPEN — start here next session
+
+1. Human gives the first Brief (Step 1) — a short, intentionally rough ticket: the goal and
+   the motivation.
+2. The PM expands it into a spec (Step 3) after the DA profiles the relevant inputs (Step 2).
+
+## Carry-over (still open)
+
+- <placeholder: none yet, or list known-open items>
+
+## How to run things (environment notes)
+
+- Operating contract: `CLAUDE.md`. Route: `TODO.md`. Decision history: `docs/project_chronicle.md`.
+- Per-project memory: `{{MEMORY_FILE_PATH}}` (path recorded in `.claude/.local/secrets.env`).
+- <placeholder: auth steps / env gotchas the next session needs — never paste secrets>

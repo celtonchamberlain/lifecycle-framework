@@ -1,0 +1,8 @@
+# Keep line endings deterministic. Husky hooks are POSIX sh and the corpus
+# engine is .mjs — both must stay LF even on Windows (CRLF breaks sh hooks and
+# churns the INDEX-freshness diff).
+* text=auto eol=lf
+*.mjs text eol=lf
+*.sh  text eol=lf
+.husky/* text eol=lf
+*.jsonl text eol=lf

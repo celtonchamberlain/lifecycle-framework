@@ -1,0 +1,6 @@
+#!/usr/bin/env sh
+# pre-commit: validate governed-doc frontmatter (warn-only, never blocks a commit).
+# Local feedback only — the strict gate runs in CI (lint-frontmatter.yml).
+# Scripts are invoked by repo-relative path: husky git hooks do not resolve
+# ${CLAUDE_PLUGIN_ROOT}, so the corpus engine must live in scripts/ in this repo.
+node scripts/validate-frontmatter.mjs --warn-only docs .claude

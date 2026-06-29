@@ -1,0 +1,73 @@
+---
+type: review
+title: "DA Review — <placeholder: ticket id> / Task <placeholder: NN>"
+ticket: <placeholder: ticket id, or null>
+status: done
+authority: secondary
+protection: normal
+affects: []
+depends_on: []
+created: <placeholder: YYYY-MM-DD>
+updated: <placeholder: YYYY-MM-DD>
+tags: []
+reviewer: da
+task_number: <placeholder: integer>
+verdict: approve
+critical_count: 0
+high_count: 0
+---
+
+<!-- DELETE THIS HEADER BEFORE PUBLISHING -->
+
+# DA Review — <placeholder: ticket id> / Task <placeholder: NN>
+
+<!-- guidance: File goes in docs/claude_tasks/reviews/YYYY-MM-DD_NN_da_review.md.
+     Verdict options: approve | approve_with_fixes | reject_needs_rework.
+     The DA validates data/output quality and correctness against the REAL data or the
+     real running result — counts, distributions, reconciliation vs the source. Report
+     actuals, not estimates. Read-only on data (SELECT only).
+     NOTE: this review is SEPARATE from the alpha test — the frozen alpha test
+     (docs/claude_tasks/alpha_tests/NN_slug.md) has its own binary execution log at Step 8. -->
+
+> Auditor: da
+> Date: <placeholder: YYYY-MM-DD>
+> Spec audited: `docs/claude_tasks/<NN>_<slug>.md`
+> Verdict: <placeholder>
+
+---
+
+## Summary
+
+<!-- guidance: What did the DA validate? Counts, distribution checks, reconciliation deltas,
+     query/output correctness. Report actuals, not estimates. -->
+
+---
+
+## Validation metrics
+
+| Metric | Source / baseline | Output | Delta | Pass/Fail |
+|--------|-------------------|--------|-------|-----------|
+| <placeholder: count vs source> | <placeholder> | <placeholder> | <placeholder> | <placeholder> |
+| <placeholder: distribution check> | <placeholder> | <placeholder> | <placeholder> | <placeholder> |
+| <placeholder: reconciliation vs source> | <placeholder> | <placeholder> | <placeholder> | <placeholder> |
+
+---
+
+## Validation results
+
+| Query / Check | Expected | Actual | Pass/Fail |
+|---------------|----------|--------|-----------|
+| <placeholder> | <placeholder> | <placeholder> | <placeholder> |
+
+---
+
+## Findings
+
+<!-- guidance: Issues found during analysis — nulls, duplicates, grain mismatches,
+     stale inputs, figures that don't reconcile with the source. -->
+
+---
+
+## Recommendation
+
+<!-- guidance: APPROVE | APPROVE_WITH_FIXES | REJECT_NEEDS_REWORK with evidence. -->

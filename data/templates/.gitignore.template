@@ -1,0 +1,61 @@
+# {{PROJECT_NAME}} — scaffolded by /lifecycle-init ({{STACK}} stack) on {{TODAY}}.
+# Keeps secrets, machine-local handoff state, and build output out of git.
+# Everything NOT listed here (CLAUDE.md, settings.json, docs/ governance, scripts/,
+# .husky/, .github/) is COMMITTED on purpose so teammates and CI inherit it.
+
+# --- Secrets & machine-local state (NEVER commit) ---
+.claude/.local/
+.env
+.env.*
+!.env.example
+*.key
+*.pem
+secrets.env
+
+# --- Per-session handoff (regenerated every close; not history) ---
+docs/context_snapshot.md
+.claude/log_session
+
+# --- Node / tooling ---
+node_modules/
+.npm/
+npm-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+
+# --- OS / editor cruft ---
+.DS_Store
+Thumbs.db
+desktop.ini
+*.swp
+*~
+.idea/
+.vscode/*
+!.vscode/extensions.json
+
+# --- Logs & temp ---
+*.log
+*.tmp
+.cache/
+coverage/
+
+# --- Stack build output (web) ---
+.next/
+out/
+dist/
+build/
+.turbo/
+.vercel/
+
+# --- Stack artifacts (data) ---
+*.pyc
+__pycache__/
+.ipynb_checkpoints/
+.venv/
+venv/
+*.duckdb
+*.parquet.tmp
+
+# NOTE: docs/activity_log.jsonl is the append-only audit trail and IS committed.
+# NOTE: the per-project memory file ({{MEMORY_FILE_PATH}}) lives outside the repo
+#       (under the user's home), so it needs no ignore entry here.

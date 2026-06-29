@@ -1,0 +1,12 @@
+# Plugin repo — keep it clean. (The scaffolded-project .gitignore is a separate template under data/templates/.)
+node_modules/
+.DS_Store
+Thumbs.db
+*.log
+.claude/.local/
+
+# Internal planning notes — not published.
+INVENTORY.md
+# ...but DO track the bundled secrets stub template (it ships with the plugin).
+!data/templates/.claude/.local/
+!data/templates/.claude/.local/**

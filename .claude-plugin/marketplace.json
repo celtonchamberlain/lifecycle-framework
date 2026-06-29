@@ -1,0 +1,17 @@
+{
+  "name": "lifecycle-framework",
+  "owner": {
+    "name": "Cristobal Elton"
+  },
+  "metadata": {
+    "description": "Single-plugin marketplace for the Lifecycle Framework.",
+    "version": "0.1.0"
+  },
+  "plugins": [
+    {
+      "name": "lifecycle-framework",
+      "source": "./",
+      "description": "The Claude Code Team Framework: ten-step lifecycle, role-specialized agents, governance corpus, and a /lifecycle-init scaffolder."
+    }
+  ]
+}

@@ -1,0 +1,69 @@
+---
+type: handoff
+title: "Handoff — Task <placeholder: NN>: <placeholder: short title>"
+ticket: <placeholder: ticket id, or null>
+status: snapshot
+authority: secondary
+protection: normal
+affects: []
+depends_on: []
+created: <placeholder: YYYY-MM-DD>
+updated: <placeholder: YYYY-MM-DD>
+tags: []
+task_number: <placeholder: integer>
+---
+
+<!-- DELETE THIS HEADER BEFORE PUBLISHING -->
+
+# Handoff — Task <placeholder: NN>: <placeholder: short title>
+
+<!-- guidance: File goes in docs/claude_tasks/handoffs/YYYY-MM-DD_NN_slug_handoff.md.
+     A handoff is written at a session boundary inside a multi-session task (a "transitory
+     close") so the next session resumes cold without re-discovery.
+     CURRENT-STATE FACTS ONLY — no history (that lives in project_chronicle.md), no machine
+     trace (that lives in activity_log.jsonl). Keep it short. authority: secondary. -->
+
+> **Task:** <placeholder: NN> — <placeholder: title>
+> **Tracker:** <placeholder: ticket link, or "local TODO.md only">
+> **Branch:** <placeholder: git branch>
+> **Lifecycle step reached:** <placeholder: 1–10>
+
+---
+
+## State in force (read first)
+
+<!-- guidance: The decisions and facts that currently govern. What is true RIGHT NOW.
+     If the next session must obey a frozen spec or a sealed alpha test, name it here. -->
+
+---
+
+## What this session did
+
+<!-- guidance: Bullet list of what changed this session. Concrete, with file paths. -->
+
+---
+
+## OPEN — start here next session
+
+<!-- guidance: The exact next action, numbered and specific enough to execute cold.
+     Include the command(s) to run and what to verify. -->
+
+1. <placeholder>
+2. <placeholder>
+
+---
+
+## Carry-over (still open from prior sessions)
+
+<!-- guidance: Known-open items that are NOT this session's immediate next action. -->
+
+- <placeholder>
+
+---
+
+## How to run things (environment notes)
+
+<!-- guidance: Auth steps, environment gotchas, profiles, commands the next session needs.
+     Never paste secrets — point to where they live (.claude/.local/secrets.env). -->
+
+- <placeholder>

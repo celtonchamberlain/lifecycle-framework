@@ -40,7 +40,9 @@ than ask blindly**.
    if the destructive hook's stack patterns are enabled). Record gaps.
 5. **Git context** (for C.1): `git rev-parse --is-inside-work-tree`, `git remote -v`, `git branch --show-current`,
    `git config user.name`, `git config user.email`, `git status --porcelain` (clean/dirty), and whether
-   `.github/workflows/` already exists (pre-existing CI).
+   `.github/workflows/` already exists (pre-existing CI). **Also enumerate the connected git accounts** — the user
+   may have several (work + personal): `gh auth status` lists every authenticated GitHub account and which is
+   **active**; also note `git config --get credential.helper`. Record all accounts + the active one.
 6. **Connected tracker MCP** (for C.2): note which tracker MCP tools are available in this session — **Linear**
    (e.g. `list_issues`, `save_issue`, `list_projects`) or **Atlassian/Jira** (e.g. `getJiraIssue`,
    `searchJiraIssuesUsingJql`, `getVisibleJiraProjects`). Record "Linear connected", "Jira connected", "both", or "none".
@@ -119,8 +121,25 @@ Use the pre-flight git context.
   3. **Proceed without git** — discouraged: husky hooks, the INDEX-freshness gate, post-commit logging, and the
      `lint-frontmatter` CI all need a git repo. Warn explicitly.
 - **Git identity:** if `user.name`/`user.email` are unset, set them (ask) — commits and the activity log need them.
-- **`gh` CLI:** if `{{GIT_HOST}} = github`, check `gh auth status`; PR-related lifecycle steps (Step 8/CI review) and
-  the `github` MCP need it. Flag if not authenticated.
+- **Pick the right git account — the user may have several connected.** Parse the **remote owner** from the origin
+  URL (`github.com/<owner>/…` or `git@host:<owner>/…`) and compare against the accounts from pre-flight
+  (`gh auth status`):
+  - **One match:** an account whose login equals the remote owner (or is a member/admin of the owner org) is the one
+    to use. If `{{GIT_HOST}} = github` and it is **not** the active account, switch to it **for this repo**:
+    `gh auth switch --user <account>` then `gh auth setup-git`. **Record the previously-active account and restore it
+    in §8** — never leave the user's global `gh` state changed after init.
+  - **Several candidates / ambiguous:** show the accounts and ask which to use for this remote (default: the one
+    matching the owner).
+  - **No account can reach the remote:** the user is authenticated but none can push here — say so and offer
+    `gh auth login` (or add) the right account before continuing.
+- **Use the token from where it already lives — never hardcode it.** Local pushes use **the selected account's
+  credential** via gh's credential helper / the system credential store — you do NOT copy the git token into
+  `settings.json` or any committed file. Only if the project itself needs the GitHub API (the `github` MCP, or a
+  script) fetch it from the correct account — `gh auth token --user <account>` — and write it as `GITHUB_TOKEN` into
+  the gitignored `.claude/.local/secrets.env`. For non-GitHub hosts (gitlab/bitbucket), rely on the configured git
+  credential helper for the matching account; same rule — read from the credential store, never inline it.
+- **`gh` availability:** if `{{GIT_HOST}} = github` and no authenticated account can reach the remote, flag it —
+  Step-8 PR review and the `github` MCP depend on it.
 
 ### C.2 — Tracker (where tickets live)
 
@@ -214,9 +233,11 @@ resolve there). If a template is absent, report it — don't fabricate.
 
 ## 3–4. Where connection config + secrets go
 
-- **`.claude/.local/secrets.env`** (gitignored): tracker token(s), `GITHUB_TOKEN` (if given), `MEMORY_FILE_PATH`,
-  `PYTHONIOENCODING=utf-8` (if Databricks). Create the empty memory file at `MEMORY_FILE_PATH` (per-project; never a
-  shared plugin dir — sharing collapses memory isolation).
+- **`.claude/.local/secrets.env`** (gitignored): tracker token(s), `MEMORY_FILE_PATH`, `PYTHONIOENCODING=utf-8`
+  (if Databricks), and `GITHUB_TOKEN` **only if a script/MCP needs the GitHub API** (fetched from the selected
+  account via `gh auth token --user <account>`) — git push itself uses the account's credential helper, not this.
+  Create the empty memory file at `MEMORY_FILE_PATH` (per-project; never a shared plugin dir — sharing collapses
+  memory isolation).
 - **`.claude/settings.json`** + **`corpus.config.mjs`** (committed): tracker **type + identity**, git remote/branch,
   the `databricks` block (envs/profile/host+warehouse map). **No secrets.**
 - `{{TRACKER}} = none` → empty tracker identity, no token. `{{DATABRICKS}} = off` → no databricks block.
@@ -272,10 +293,12 @@ From the project root (print the exact command for the user if a step is blocked
 ## 8. Final summary (in the user's language)
 
 Report: project identity; model policy + enabled roster + `separation_of_duties_mode`; the **three connections** —
-Git (repo/branch/remote, identity), tracker (type + connection identity; token in `.claude/.local/secrets.env`, never
-shown), Databricks (envs/profile/warehouses, or "not connected"); every file written, every file **preserved**, any
-missing template; toolchain status (git, npm, husky, Agent Teams flag, INDEX); MCP verification (`memory`, `github`,
-tracker, Databricks). Next step: start a session — the PM reads `CLAUDE.md` + `TODO.md` + the chronicle and begins the
+Git (repo/branch/remote, identity, **the git account selected for this remote**), tracker (type + connection identity;
+token in `.claude/.local/secrets.env`, never shown), Databricks (envs/profile/warehouses, or "not connected"); every
+file written, every file **preserved**, any missing template; toolchain status (git, npm, husky, Agent Teams flag,
+INDEX); MCP verification (`memory`, `github`, tracker, Databricks). **If you switched the active `gh` account in C.1,
+restore the previously-active one now** (`gh auth switch --user <prev>`) and confirm it. Next step: start a session —
+the PM reads `CLAUDE.md` + `TODO.md` + the chronicle and begins the
 lifecycle at Step 1 (Brief).
 
 Do not declare success if the Agent Teams flag is missing, the corpus scripts failed, or any `{{VAR}}` was left

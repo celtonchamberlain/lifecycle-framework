@@ -17,8 +17,7 @@ tags: [snapshot]
 > **The single "where we are" handoff for the next session.** Current state only — NOT
 > history (that is `project_chronicle.md`). Kept short, facts only. **Overwritten on every
 > close** (`/close-task`, Step 10) — the deliberate overwrite is what keeps it a snapshot, not
-> a log. Usually gitignored; if it syncs by another means (e.g. a synced drive), say so here
-> and note that MCP memory may NOT travel with it.
+> a log. Usually gitignored; if it syncs by another means (e.g. a synced drive), say so here.
 
 ## State in force (read first)
 
@@ -43,5 +42,5 @@ tags: [snapshot]
 ## How to run things (environment notes)
 
 - Operating contract: `CLAUDE.md`. Route: `TODO.md`. Decision history: `docs/project_chronicle.md`.
-- Per-project memory: `{{MEMORY_FILE_PATH}}` (path recorded in `.claude/.local/secrets.env`).
+- Per-project memory: the corpus itself — `docs/project_chronicle.md` + this snapshot + `docs/INDEX.md`. Recall = read those; record = write back via `/close-task`. (If the project enabled basic-memory, you may also use its write_note/search_notes/build_context tools — but the corpus remains the default source of truth.)
 - <placeholder: auth steps / env gotchas the next session needs — never paste secrets>

@@ -15,8 +15,9 @@ The MCP servers exist to prevent specific failure modes. If a task matches a tri
 and you skip the server, explain why in the task report.
 
 ## Which servers this project uses
-- **memory** — REQUIRED. Plugin-declared, with a **per-project** `MEMORY_FILE_PATH` so this
-  project's knowledge graph never mixes with another's.
+- **memory** — DEFAULT: there is **no memory MCP**. The project's Markdown corpus *is* the
+  knowledge graph (chronicle + snapshot + INDEX + affects-lookup). OPT-IN: a project may
+  enable the `basic-memory` MCP at init — see §1.
 - **github** — recommended. User-global prerequisite (not declared by the plugin).
 - **tracker** — `{{TRACKER}}`. Recommended. User-global prerequisite. The `/log-tracker`
   skill branches on the tracker chosen at init (Linear, or Atlassian for Jira). If
@@ -30,39 +31,48 @@ in the gitignored `.claude/.local/secrets.env`.
 
 ---
 
-## 1. Memory (Knowledge Graph) — REQUIRED
+## 1. Memory — the corpus *is* the knowledge graph
 
-Store: `{{MEMORY_FILE_PATH}}` (per-project; never a plugin-shared file).
+**DEFAULT (no MCP):** persistent knowledge lives in the project's Markdown corpus, not in a
+memory server. There is **no `search_nodes` / `read_graph` / `create_entities`**. The graph is:
+- `docs/project_chronicle.md` (append-only) — decisions & history.
+- `docs/context_snapshot.md` — current-state handoff for the next session.
+- `docs/activity_log.jsonl` — per-step machine log.
+- `docs/INDEX.md` + `docs/index.json` — queryable index (`type`/`status`/`authority`,
+  `depends_on`/`affects` relations).
+- `scripts/affects-lookup.mjs` — finds dependents (blast radius) = the graph-walk.
 
-**When:** every session start, and after every completed task (`/close-task` writes it).
+**RECALL — how an agent remembers (session/task start, read before acting):**
+- Read `docs/project_chronicle.md` + `docs/context_snapshot.md` + the INDEX (`docs/INDEX.md`).
+- For a topic: grep the corpus / read the INDEX, and run `node scripts/affects-lookup.mjs <path>`
+  to see what depends on what you're about to change.
 
-**Session start — read before acting:**
-```
-search_nodes("{{PROJECT_SLUG}}")    → current project state and open decisions
-search_nodes("task")                → what has been done
-search_nodes("corrections")         → avoid repeating known mistakes
-search_nodes("decisions")           → recall decisions of record
-```
-Use `read_graph` only when you genuinely need the full graph — `search_nodes` first.
+**RECORD — how an agent persists (after a completed task):** write to the corpus — the task
+report (`docs/claude_tasks/reports/`), the reviews, and (via `/close-task`) the append to
+`docs/project_chronicle.md` plus the overwrite of `docs/context_snapshot.md`. The corpus is
+the memory; there is nothing else to write to.
 
-**After completing a task:**
-```
-create_entities   → a new task-result entity with findings
-add_observations  → append discoveries to existing entities
-create_relations  → link the task to the project entity
-```
-
-**What to store:** task completion + date + key findings; corrections (wrong paths, broken
+**What to record:** task completion + date + key findings; corrections (wrong paths, broken
 assumptions discovered); decisions of record and their rationale; recurring failure modes.
 
-**What NOT to store:** secrets/tokens/credentials; warehouse ids, hostnames, catalog names;
+**What NOT to record:** secrets/tokens/credentials; warehouse ids, hostnames, catalog names;
 speculation or assumptions; information already captured verbatim in a task report (link,
 don't duplicate).
 
-**Entity naming convention** (keep it stable so lookups work across sessions):
-- `{{PROJECT_SLUG}}_project` — top-level project facts.
-- `{{PROJECT_SLUG}}_task_<NN>_<short>` — per-task findings.
-- `{{PROJECT_SLUG}}_corrections` — living record of path/assumption fixes.
+### Opt-in: the `basic-memory` MCP
+
+A project MAY enable a memory MCP at init (`memory_backend = basic-memory`). When enabled:
+- **Server name:** `basic-memory`. **Launch:** `uvx basic-memory mcp`.
+- **Requires:** `uv`/`uvx` + Python 3.12+ on the machine.
+- **Store:** `BASIC_MEMORY_HOME=${CLAUDE_PROJECT_DIR}/docs/memory` — notes are Markdown in the
+  repo, so they stay part of the corpus.
+- **Tools:** `mcp__basic-memory__write_note` / `read_note` / `search_notes` / `build_context`
+  / `recent_activity`.
+- **Hygiene:** gitignore the derived SQLite index; add a `.bmignore` to keep PII out of notes.
+
+Agents MUST still work **without** it — the corpus remains the default and the source of
+truth. Where this rule says "record" or "recall", the `basic-memory` tools are an optional
+add-on over the same Markdown, never a replacement.
 
 ---
 
@@ -143,13 +153,14 @@ production. Default to `{{DATABRICKS_PROFILE}}` when the task does not say.
 
 **Read-only by default:** queries are read-only unless the task explicitly authorizes a
 write (DDL/DML). Never hardcode credentials, catalog names, warehouse ids, or workspace URLs
-in code; never store any of those in memory.
+in code; never record any of those in the corpus.
 
 ---
 
-## Rule: don't ignore MCPs
-Each server prevents a concrete failure:
-- Skipping **memory** → the next session re-discovers what this one already learned.
+## Rule: don't ignore MCPs (and the corpus)
+Each prevents a concrete failure:
+- Skipping the **corpus memory** (chronicle/snapshot/INDEX) → the next session re-discovers
+  what this one already learned.
 - Skipping **github** → PR/CI state drifts from the local working tree.
 - Skipping **tracker** → the plan drifts from the team's source of truth.
 - Skipping **Databricks** config discipline → secrets/ids leak into code or the wrong env is hit.

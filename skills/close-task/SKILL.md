@@ -1,6 +1,6 @@
 ---
 name: close-task
-description: Step-10 lifecycle closer. Three variants — Full lifecycle close (spec + alpha test + report done, human-validated at Step 9), Research / non-lifecycle close (investigation, spike, governance/docs — no spec, no alpha test, no forced ticket Done), and Transitory close (multi-session boundary — snapshot + memory only). Refreshes the context snapshot and TODO, appends to the chronicle on a decision of record, conditionally re-audits architecture from live sources, writes distilled MCP memory, rebuilds the INDEX, and moves the ticket to Done. Tracker-parameterized (Jira | Linear | none, read from .claude/settings.json). Honors protected (proposed for human authorization) and append-only doc rules.
+description: Step-10 lifecycle closer. Three variants — Full lifecycle close (spec + alpha test + report done, human-validated at Step 9), Research / non-lifecycle close (investigation, spike, governance/docs — no spec, no alpha test, no forced ticket Done), and Transitory close (multi-session boundary — snapshot only). Refreshes the context snapshot and TODO, appends to the chronicle on a decision of record, conditionally re-audits architecture from live sources, rebuilds the INDEX, and moves the ticket to Done. The chronicle + context_snapshot ARE the persisted memory. Tracker-parameterized (Jira | Linear | none, read from .claude/settings.json). Honors protected (proposed for human authorization) and append-only doc rules.
 allowed-tools: Read, Edit, Write, Glob, Grep, Bash, TodoWrite
 ---
 
@@ -17,7 +17,7 @@ assume a stack, tracker, table, or path. Read these first, then act:
   (`web | data | generic`), enabled MCP servers, `separation_of_duties_mode`.
 - **`corpus.config.mjs`** — per-project paths, ticket prefix, project slug, the corpus script names.
 - **`CLAUDE.md`** — model policy, lifecycle numbering, role roster, communication language, protected-doc list.
-- **`.claude/rules/*.md`** — especially `frontmatter.md` (the taxonomy SSOT) and `mcp-usage.md` (the Memory protocol).
+- **`.claude/rules/*.md`** — especially `frontmatter.md` (the taxonomy SSOT) and `mcp-usage.md` (MCP server usage).
 
 If the tracker is not declared in `settings.json`, ask the PM which variant of close to run before writing anything.
 
@@ -29,7 +29,7 @@ The variant decides which sections run. Choose before touching any file.
 |---|---|---|
 | **Full lifecycle close** | A 10-step task is done — spec + alpha test + report exist, the human validated at Step 9 (or a sanctioned shortcut applies) | §1 (lifecycle read) + §2 + §3 + §4 + §5 |
 | **Research / non-lifecycle close** | Investigation, spike, or governance/docs work — no spec, no alpha test, maybe no ticket | §1 (research read) + §2 + §4 + §5. **SKIP §3** (no spec flip/archive, no alpha test, no forced ticket Done) |
-| **Transitory close** | A multi-session task at a session boundary — it continues next session | ONLY: overwrite `docs/context_snapshot.md` + write MCP memory + `/log-activity paused`. **No** chronicle, **no** ticket Done, the spec stays `in_progress` |
+| **Transitory close** | A multi-session task at a session boundary — it continues next session | ONLY: overwrite `docs/context_snapshot.md` + `/log-activity paused`. The snapshot IS the persisted memory the next session resumes from. **No** chronicle, **no** ticket Done, the spec stays `in_progress` |
 
 A multi-session lifecycle task gets a **transitory close at each boundary** and **exactly one full close at the end**.
 
@@ -75,21 +75,25 @@ keeps it a snapshot, not a log. Current state only, facts only, kept short:
 - Blockers / open questions.
 - Current state of any open decisions and the deploy/pipeline status if the stack has one.
 
-### MCP Memory — distilled knowledge only
-Use the `memory` MCP server (per-project knowledge graph; path is configured per-project — never shared). Persist
-**what future sessions need to know**, not raw activity. Follow `.claude/rules/mcp-usage.md`.
+### Distilled knowledge — folded into the corpus
+There is no separate memory write: **the chronicle + context_snapshot ARE the persisted memory.** Distilled
+knowledge that future sessions need is recorded in the corpus, not in a side store. Fold each kind into its home:
 
-**Persist:** schema surprises (unexpected types, nullability, format quirks); platform gotchas (whatever the
-project's runtime quirks are); data patterns (cardinality anomalies, NULL rates, cross-source inconsistencies);
-decisions that change how future work is done; baseline counts that serve as anchors (row counts, match rates,
-component counts).
+**What to capture, and where it lands:**
+- Schema surprises (unexpected types, nullability, format quirks), platform gotchas, data patterns (cardinality
+  anomalies, NULL rates, cross-source inconsistencies) → the task report and `docs/knowledge_base/` / `docs/schema/`
+  (see §4); a baseline count that anchors future work goes in the report and, if it shaped a decision, the snapshot.
+- Decisions that change how future work is done → `project_chronicle.md` (a decision of record) and `strategy.md`.
+- Current-state anchors the next session needs immediately → `context_snapshot.md`.
 
-**Do NOT persist:** routine progress (already in the activity log / tracker); anything already in a report; anything
-derivable from code or `git log`; secrets, tokens, hostnames, or infrastructure identifiers.
+**Do NOT re-record:** routine progress (already in the activity log / tracker); anything already in a report;
+anything derivable from code or `git log`; secrets, tokens, hostnames, or infrastructure identifiers.
 
-**Operations:** `add_observations` (new facts on existing entities), `create_entities` (new concepts — tables,
-patterns, quirks), `create_relations` (links between entities). The activity log is the audit trail; MCP memory is
-distilled knowledge — keep them distinct.
+The activity log is the audit trail; the chronicle + snapshot + report are the distilled knowledge — keep them
+distinct.
+
+(If the project enabled basic-memory, you may also use its write_note/search_notes/build_context tools — but the
+corpus remains the default source of truth.)
 
 ### Index rebuild — unconditional when frontmatter changed
 If any frontmatter changed this session, rebuild the corpus index by running the project's build-index script
@@ -217,7 +221,7 @@ State the variant and what was updated vs skipped. Examples:
 **Full lifecycle close (tracker = jira):**
 ```
 Variant: Full lifecycle close
-Updated: project_chronicle.md (decision of record), context_snapshot.md, TODO.md (status-sync), MCP memory, INDEX, spec (done + archived)
+Updated: project_chronicle.md (decision of record), context_snapshot.md, TODO.md (status-sync), INDEX, spec (done + archived)
 Conditionally updated: architecture.md (§schema — proposed diff for migration 0032 + RPC fix; AWAITING human authorization)
 Tracker: Jira PROJ-142 → Completion Notes appended, transitioned to Done
 Skipped: strategy.md (no decision of record beyond the one chronicled)
@@ -226,7 +230,7 @@ Skipped: strategy.md (no decision of record beyond the one chronicled)
 **Research / non-lifecycle close (tracker = linear):**
 ```
 Variant: Research / non-lifecycle close
-Updated: docs/research/2026-06-29_slug.md (placed + frontmatter), context_snapshot.md, MCP memory, INDEX
+Updated: docs/research/2026-06-29_slug.md (placed + frontmatter), context_snapshot.md, INDEX
 Conditionally updated: none (repository guide / schema / KB unchanged)
 Chronicle: skipped (no decision of record)
 Tracker: comment on PROJ-123 (no Done — investigation continues)
@@ -236,6 +240,6 @@ Skipped (lifecycle-only): spec flip/archive, alpha test, ticket Done
 **Transitory close:**
 ```
 Variant: Transitory close (session boundary)
-Updated: context_snapshot.md (overwritten), MCP memory, activity log (paused)
+Updated: context_snapshot.md (overwritten — the persisted memory), activity log (paused)
 Spec: stays in_progress. No chronicle, no tracker Done. Resume next session from the snapshot.
 ```

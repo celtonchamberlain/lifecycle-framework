@@ -14,7 +14,7 @@ You do NOT copy agents/skills/hooks — those are **Tier-A** (plugin-resident) a
 > already has CI/CD. So the Connections phase **detects and confirms what already exists** before offering to create
 > anything. Creating a fresh repo is the fallback, not the default.
 
-> **Two-tier rule (never violate it):** Tier-A files (`agents/*.md`, `skills/**`, `hooks/*`, `.mcp.json`) are
+> **Two-tier rule (never violate it):** Tier-A files (`agents/*.md`, `skills/**`, `hooks/*`) are
 > installed once with the plugin and read config (tracker, stack, models) at runtime — they contain **no**
 > `{{TEMPLATE_VARS}}`. Tier-B files (everything you write here, sourced from `${CLAUDE_PLUGIN_ROOT}/data/templates/`)
 > ARE templated: substitute every `{{VAR}}` and strip the `.template` suffix. Never write a `{{VAR}}` into a
@@ -56,7 +56,8 @@ Then run the interview in **exactly this order**: A → B → C. Echo each captu
 ## A. Information for `CLAUDE.md` (project identity)
 
 1. **Project name** → `{{PROJECT_NAME}}`; derive `{{PROJECT_SLUG}}` (lowercase, non-alphanumeric → `_`, collapsed).
-   The slug **must be unique across the user's projects** (it names the memory file). Confirm it.
+   The slug **must be unique across the user's projects** (it identifies the project — and, if `basic-memory` is
+   enabled, its notes folder). Confirm it.
 2. **One-line goal** → `{{PROJECT_GOAL}}`.
 3. **Stack** → `{{STACK}}` (`web | data | generic`). Selects the CLAUDE.md / architecture / CI variant and stack MCP
    guidance. **If `data`, default Databricks ON in C.3.** If unsure, `generic`.
@@ -75,6 +76,12 @@ Then run the interview in **exactly this order**: A → B → C. Echo each captu
    `claude-opus-4-8`. Their pins live in the Tier-A agent frontmatter; here you only document the policy.)
 6. **Agent roster.** Core five always on. Toggles: `corpus-steward` **ON** by default; `data-reviewer` OFF (ON sets
    `separation_of_duties_mode = strict`); `scout` OFF; `dead-code-cleanup` OFF. Record the enabled set + SoD mode.
+7. **Memory backend** → `{{MEMORY_BACKEND}}` (`corpus | basic-memory`). **Default `corpus`** — there is **no memory
+   MCP**: the project's markdown corpus *is* the knowledge graph (chronicle + snapshot + INDEX + `affects-lookup`).
+   Recall = read `project_chronicle.md` + `context_snapshot.md` + the INDEX, then grep / `affects-lookup` for a topic;
+   record = write to the corpus (task report, reviews, and the chronicle via `/close-task`). Opt-in `basic-memory`
+   adds an MCP over the repo's own Markdown (notes in `docs/memory/`); the corpus stays the source of truth either
+   way. If the user picks `basic-memory`, honor the §6.4 enablement steps at scaffold time.
 
 ---
 
@@ -190,7 +197,7 @@ Ask: **"Connect this project to Databricks?"** (default **yes** if `{{STACK}} = 
    - Note in `CLAUDE.md` (data stack): use `databricks-sql-connector` for local SQL; never hardcode catalogs/
      warehouse ids/workspace URLs; pick the env profile per task.
 
-After C, **echo a full summary** (all vars + roster + SoD mode + the three connections) and get a single
+After C, **echo a full summary** (all vars + roster + SoD mode + memory backend + the three connections) and get a single
 confirmation before writing anything.
 
 ---
@@ -208,8 +215,12 @@ Resolve all before substitution; use **exactly** these names:
 | `{{GITHUB_REPO}}` / `{{GIT_HOST}}` / `{{GIT_BRANCH}}` / `{{GIT_DEFAULT_BRANCH}}` | C.1 |
 | `{{DATABRICKS}}` (`on\|off`) / `{{DATABRICKS_ENVS}}` (comma list) / `{{DATABRICKS_PROFILE}}` / `{{DATABRICKS_DEFAULT_HOST}}` | C.3 |
 | `{{DATABRICKS_HOSTS_JSON}}` / `{{DATABRICKS_WAREHOUSES_JSON}}` | C.3 — JSON objects keyed by env (e.g. `{"dev":"...","prod":"..."}`); resolve to `{}` when `{{DATABRICKS}}=off` |
-| `{{MEMORY_FILE_PATH}}` | derived: `~/.claude/projects/{{PROJECT_SLUG}}_memory.jsonl` (absolute) — **per-project**, never plugin-shared |
+| `{{MEMORY_BACKEND}}` (`corpus\|basic-memory`, default `corpus`) | A.7 |
 | `{{TODAY}}` | `date +%F` |
+
+(The default backend writes an **empty** `.mcp.json` (`{"mcpServers":{}}`) — the corpus is the knowledge graph, no
+memory MCP. Only when `{{MEMORY_BACKEND}} = basic-memory` does `.mcp.json` declare a server (§6.4); its
+`BASIC_MEMORY_HOME` is set literally via `${CLAUDE_PROJECT_DIR}`, so it is per-project without a slug.)
 
 Empty vars (e.g. tracker fields when `none`, Databricks fields when `off`) substitute to the empty string; ensure the
 surrounding template line still reads correctly.
@@ -220,7 +231,7 @@ surrounding template line still reads correctly.
 
 For every `*.template` under `${CLAUDE_PLUGIN_ROOT}/data/templates/`: read it, substitute every `{{VAR}}`, compute
 the output path (same relative path under project root, `.template` stripped), create parent dirs, apply the §7
-overwrite policy, write. Expected map: `CLAUDE.md` (stack-variant), `TODO.md` (protected), `.gitignore`;
+overwrite policy, write. Expected map: `CLAUDE.md` (stack-variant), `TODO.md` (protected), `.gitignore`, `.mcp.json` (default: empty `{"mcpServers":{}}`; `basic-memory` backend → declares that server per §6.4);
 `docs/{strategy.md,architecture.md}` (protected), `project_chronicle.md` (append-only, init entry `{{TODAY}}`),
 `context_snapshot.md`, empty `activity_log.jsonl`, `_templates/*`, `claude_tasks/{alpha_tests,reviews,reports,council,archive}`,
 `audits/`, `knowledge_base/`, INDEX (autogen in §6); `.claude/{settings.json (committed, has Agent Teams env +
@@ -233,11 +244,14 @@ resolve there). If a template is absent, report it — don't fabricate.
 
 ## 3–4. Where connection config + secrets go
 
-- **`.claude/.local/secrets.env`** (gitignored): tracker token(s), `MEMORY_FILE_PATH`, `PYTHONIOENCODING=utf-8`
-  (if Databricks), and `GITHUB_TOKEN` **only if a script/MCP needs the GitHub API** (fetched from the selected
-  account via `gh auth token --user <account>`) — git push itself uses the account's credential helper, not this.
-  Create the empty memory file at `MEMORY_FILE_PATH` (per-project; never a shared plugin dir — sharing collapses
-  memory isolation).
+- **`.claude/.local/secrets.env`** (gitignored): tracker token(s), `PYTHONIOENCODING=utf-8` (if Databricks), and
+  `GITHUB_TOKEN` **only if a script/MCP needs the GitHub API** (fetched from the selected account via
+  `gh auth token --user <account>`) — git push itself uses the account's credential helper, not this.
+- **Memory backend:** the default (`{{MEMORY_BACKEND}} = corpus`) has **no memory MCP** — the markdown corpus
+  (`project_chronicle.md` + `context_snapshot.md` + INDEX + `affects-lookup`) *is* the knowledge graph; the
+  scaffolded `.mcp.json` is empty (`{"mcpServers":{}}`). There is no `memory.jsonl` to create. Only when the user
+  opted into `basic-memory` (A.7) do you run the §6.4 enablement (verify uv/uvx + Python 3.12+; write `.mcp.json` +
+  `docs/memory/` + `.bmignore`; gitignore the SQLite index; extend the allowlist).
 - **`.claude/settings.json`** + **`corpus.config.mjs`** (committed): tracker **type + identity**, git remote/branch,
   the `databricks` block (envs/profile/host+warehouse map). **No secrets.**
 - `{{TRACKER}} = none` → empty tracker identity, no token. `{{DATABRICKS}} = off` → no databricks block.
@@ -264,15 +278,43 @@ From the project root (print the exact command for the user if a step is blocked
 
 ## 6. Build the index + verify connections/MCP
 
-1. **INDEX.** `node scripts/build-index.mjs` → `docs/INDEX.md` + `docs/index.json`.
+1. **Stage, then build INDEX.** `build-index.mjs` reads **git-tracked** files, so an unstaged scaffold indexes 0
+   files. First `git add -A` (stage the scaffolded corpus), then `node scripts/build-index.mjs` → `docs/INDEX.md` +
+   `docs/index.json`. **Commit order matters** — the `pre-push` hook rebuilds the INDEX and blocks on drift — so the
+   first commit should be: `git add -A && npm run build:index && git add docs/INDEX.md docs/index.json && git commit`.
+   (Init does not commit for the user unless asked; tell them this is the first commit to make.)
 2. **Seed KB** (if §B had docs): run `/audit-corpus`.
 3. **Verify connections:**
    - **Git:** remote reachable (`git ls-remote` if a remote is set), on the intended branch, identity set; `gh auth
      status` if GitHub.
-   - **MCP:** `memory` resolves (plugin-declared, per-project path). Then the **user-global prerequisites**: `github`
-     and the chosen tracker MCP (Linear / Atlassian) — if absent, tell the user to enable them globally; flag, don't block.
+   - **MCP:** with the default `corpus` backend there is **no memory MCP** to verify — confirm `.mcp.json` is empty
+     (`{"mcpServers":{}}`) and that the corpus (chronicle + snapshot + INDEX) is in place; that *is* the knowledge
+     graph. If `{{MEMORY_BACKEND}} = basic-memory`, verify it per §6.4. Then the **user-global prerequisites**:
+     `github` and the chosen tracker MCP (Linear / Atlassian) — if absent, tell the user to enable them globally;
+     flag, don't block.
    - **Databricks** (if on): confirm the chosen profile authenticates (`databricks current-user me --profile
      {{DATABRICKS_PROFILE}}` or an SQL-connector ping); flag per-env gaps.
+
+### 6.4 — Enable `basic-memory` (only if `{{MEMORY_BACKEND}} = basic-memory`)
+
+Skip entirely for the default `corpus` backend. When opted in, at scaffold time:
+
+1. **Prereqs.** Verify `uv`/`uvx` and **Python 3.12+** are available (`uvx --version`, `python --version`). If
+   missing, tell the user to install `uv` (https://docs.astral.sh/uv/) and **flag it** — do not block the rest of init.
+2. **Declare the server** in the project `.mcp.json` (instead of the empty default):
+   ```json
+   { "mcpServers": { "basic-memory": {
+       "command": "uvx",
+       "args": ["basic-memory", "mcp"],
+       "env": { "BASIC_MEMORY_HOME": "${CLAUDE_PROJECT_DIR}/docs/memory" } } } }
+   ```
+   Manual alternative for the user: `claude mcp add basic-memory -- uvx basic-memory mcp`.
+3. **Storage.** Create `docs/memory/` (with a `.gitkeep`) and a `docs/memory/.bmignore` guarding PII. **Gitignore**
+   the derived SQLite index and any `*.db` (add `*.db` and the basic-memory index path to `.gitignore`).
+4. **Allowlist.** In `.claude/settings.json`, add `"basic-memory"` to `enabledMcpjsonServers`, and add the
+   `mcp__basic-memory__*` tools to the permission allowlist:
+   `write_note`, `read_note`, `edit_note`, `search_notes`, `build_context`, `recent_activity`, `list_directory`.
+   The corpus remains the default source of truth; agents must still work without this MCP.
 
 ---
 
@@ -296,7 +338,8 @@ Report: project identity; model policy + enabled roster + `separation_of_duties_
 Git (repo/branch/remote, identity, **the git account selected for this remote**), tracker (type + connection identity;
 token in `.claude/.local/secrets.env`, never shown), Databricks (envs/profile/warehouses, or "not connected"); every
 file written, every file **preserved**, any missing template; toolchain status (git, npm, husky, Agent Teams flag,
-INDEX); MCP verification (`memory`, `github`, tracker, Databricks). **If you switched the active `gh` account in C.1,
+INDEX); memory backend (`corpus` = no MCP, the corpus is the knowledge graph; or `basic-memory` enabled per §6.4);
+MCP verification (`github`, tracker, Databricks, + `basic-memory` if enabled). **If you switched the active `gh` account in C.1,
 restore the previously-active one now** (`gh auth switch --user <prev>`) and confirm it. Next step: start a session —
 the PM reads `CLAUDE.md` + `TODO.md` + the chronicle and begins the
 lifecycle at Step 1 (Brief).

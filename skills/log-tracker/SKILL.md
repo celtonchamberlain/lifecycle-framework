@@ -1,7 +1,7 @@
 ---
 name: log-tracker
 description: Dual-write milestone logger. Posts a mirrored comment to the active tracker issue (Linear OR Jira) AND appends one JSON Lines record to docs/activity_log.jsonl, cross-referenced by the tracker comment id. Branches on the tracker chosen at init (linear | jira | none). Also applies/removes state labels and state transitions based on the comment tag. Use at every milestone worth surfacing to the tracker. For the cheap, tracker-free half of the dual-write, use /log-activity instead.
-allowed-tools: Bash, Read, Edit, Write, mcp__claude_ai_Linear__save_comment, mcp__claude_ai_Linear__get_issue, mcp__claude_ai_Linear__save_issue, mcp__claude_ai_Atlassian__addCommentToJiraIssue, mcp__claude_ai_Atlassian__getJiraIssue, mcp__claude_ai_Atlassian__editJiraIssue, mcp__claude_ai_Atlassian__getTransitionsForJiraIssue, mcp__claude_ai_Atlassian__transitionJiraIssue, mcp__memory__add_observations, mcp__memory__create_entities
+allowed-tools: Bash, Read, Edit, Write, mcp__claude_ai_Linear__save_comment, mcp__claude_ai_Linear__get_issue, mcp__claude_ai_Linear__save_issue, mcp__claude_ai_Atlassian__addCommentToJiraIssue, mcp__claude_ai_Atlassian__getJiraIssue, mcp__claude_ai_Atlassian__editJiraIssue, mcp__claude_ai_Atlassian__getTransitionsForJiraIssue, mcp__claude_ai_Atlassian__transitionJiraIssue
 ---
 
 # Log to Tracker (dual-write milestone logger)
@@ -462,25 +462,27 @@ After every invocation, confirm:
 
 ---
 
-## Persist to MCP memory (if applicable)
+## Record to the corpus (if applicable)
 
 After logging to the tracker, evaluate: did this step reveal something a future session needs to know?
 
-**Persist if:**
+**Record if:**
 - Schema surprise (unexpected types, nullability, format quirks)
 - Platform / tooling gotcha (a behavior or limitation worth remembering)
 - Data pattern (cardinality anomaly, NULL rates, cross-source inconsistency)
 - Decision that changes how future work is done
 
-**Do NOT persist:**
+**Do NOT record:**
 - Routine progress ("implementation started", "tests passed")
 - Information already captured in the task report or the issue description
 
-Use `mcp__memory__add_observations` for existing entities, `mcp__memory__create_entities` for new
-concepts.
+Record findings in the corpus — the task report (`docs/claude_tasks/reports/`), and the chronicle
+(`docs/project_chronicle.md`) via `/close-task`. The corpus is the memory; there is no
+`create_entities` / `add_observations`. (If the project enabled basic-memory, you may also use its
+write_note/search_notes/build_context tools — but the corpus remains the default source of truth.)
 
-The tracker = audit trail (everything). MCP memory = distilled knowledge (only what future sessions
-need).
+The tracker = audit trail (everything). The corpus = distilled knowledge (only what future sessions
+need): `project_chronicle.md` + `context_snapshot.md`, indexed by the INDEX.
 
 ---
 

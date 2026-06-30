@@ -133,8 +133,8 @@ After every invocation, confirm:
   `node -e "require('fs').readFileSync('docs/activity_log.jsonl','utf8').trim().split('\n').forEach(l=>JSON.parse(l))"` — parses without error.
 - A second invocation only appends; it never rewrites or deletes a prior line.
 
-## Persist to MCP Memory (if applicable)
+## Persist Reusable Knowledge (distinct from this log)
 
-Distinct from this log. After a step that revealed something a future session needs (a schema surprise, a platform gotcha, a decision that changes future work) → write it to the project's MCP memory graph via `mcp__memory__add_observations` / `create_entities` (per-project `MEMORY_FILE_PATH`). Do **not** persist routine progress — that is exactly what this log is for.
+Distinct from this log. After a step that revealed something a future session needs (a schema surprise, a platform gotcha, a decision that changes future work) → record it in the corpus: the task report (`docs/claude_tasks/reports/`) at the time, and the project chronicle (`docs/project_chronicle.md`, via `/close-task`) at close — the corpus is the memory. Do **not** persist routine progress — that is exactly what this log is for. (If the project enabled basic-memory, you may also use its write_note/search_notes/build_context tools — but the corpus remains the default source of truth.)
 
-> Activity log = the audit trail (what happened, by whom, when, with which step). MCP memory = distilled, reusable knowledge. Keep them separate.
+> Activity log = the audit trail (what happened, by whom, when, with which step). The corpus (chronicle + reports) = distilled, reusable knowledge. Keep them separate.

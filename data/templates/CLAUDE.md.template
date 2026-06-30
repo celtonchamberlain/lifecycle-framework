@@ -19,8 +19,9 @@ related_decisions: []
 > **Project:** {{PROJECT_NAME}} (`{{PROJECT_SLUG}}`)
 > **Goal:** {{PROJECT_GOAL}}
 > **Stack:** {{STACK}}
-> **Scaffolded by the lifecycle-framework plugin** — agents, skills, the safety hook, and the `memory` MCP
-> are plugin-resident (installed once, available everywhere). This file + everything under `docs/`,
+> **Scaffolded by the lifecycle-framework plugin** — agents, skills, and the safety hook are plugin-resident
+> (installed once, available everywhere). Persistent knowledge lives in the project's Markdown corpus — the corpus
+> *is* the knowledge graph (no memory MCP by default). This file + everything under `docs/`,
 > `.claude/rules/`, `.husky/`, `.github/`, and `scripts/` is project-scaffolded and lives in this repo.
 
 ---
@@ -82,8 +83,11 @@ Execute in order at every session start:
 3. Read `docs/architecture.md` — the live system as built TODAY (tech stack, topology, data flow). **Mandatory
    once it exists** (it is created the first time the system has architecture to record). Never write
    architectural assumptions from memory — it is re-audited from live sources, not recalled.
-4. Load MCP memory: `search_nodes(<topic>)` for relevant entities (use `read_graph` only when the full graph is
-   needed — a targeted search costs a fraction of the tokens).
+4. Load corpus context (chronicle + snapshot + INDEX): read `docs/project_chronicle.md` (decisions & history) +
+   `docs/context_snapshot.md` (current-state handoff) + the INDEX. For a topic, grep the corpus / read the INDEX /
+   run `scripts/affects-lookup.mjs` — the corpus *is* the memory; there is no `search_nodes` / `read_graph`.
+   (If the project enabled basic-memory, you may also use its `search_notes`/`build_context` tools — but the
+   corpus remains the default source of truth.)
 5. Read `TODO.md` + check the tracker ({{TRACKER}}) — current priorities. **The tracker is the source of truth
    for ticket status**; `TODO.md` is the dependency-ordered roadmap mirror.
 6. Read `docs/context_snapshot.md` (if it exists) — last session's state, for a cold resume.
@@ -97,7 +101,8 @@ Execute in order at every session start:
 
 **One Claude Code session runs exactly one task, Brief → Close — never a whole ticket.** A ticket is the
 umbrella (many tasks → many sessions). A task too big for one session uses a **transitory close** at each
-boundary that persists the snapshot + memory, so the next session resumes exactly where this one stopped.
+boundary that persists the snapshot + chronicle to the corpus, so the next session resumes exactly where this
+one stopped.
 
 Three phases: **Frame (1–4) · Challenge then build (5–7) · Verify and close (8–10).**
 
@@ -119,7 +124,7 @@ Three phases: **Frame (1–4) · Challenge then build (5–7) · Verify and clos
                                       alpha test -> binary pass/fail.
  9. Validation       Human            Final acceptance check on the live result: accept, or send it back.
 10. Close            pm               /close-task: final log line, refresh snapshot + TODO, append chronicle,
-                                      conditional architecture re-audit, write MCP memory, move ticket to Done.
+                                      conditional architecture re-audit, rebuild INDEX, move ticket to Done.
 ```
 
 **Rules:**
@@ -187,7 +192,7 @@ Plugin-resident skills (installed once; triggered by slash command or the `Skill
 
 | Skill | Trigger | What it does |
 |-------|---------|--------------|
-| Close Task | `/close-task` | Step-10 closer: append chronicle, overwrite context_snapshot, write MCP memory, status-sync `TODO.md`, conditional `architecture.md` re-audit, rebuild INDEX, move the ticket to Done + Completion Notes. Variants: full / research / transitory multi-session. |
+| Close Task | `/close-task` | Step-10 closer: append chronicle, overwrite context_snapshot, status-sync `TODO.md`, conditional `architecture.md` re-audit, rebuild INDEX, move the ticket to Done + Completion Notes. The chronicle + snapshot + INDEX *are* the persisted memory. Variants: full / research / transitory multi-session. |
 | Log Activity | `/log-activity` | Append-only JSONL writer: one record per lifecycle step → `docs/activity_log.jsonl`. The cheap, tracker-free half of the dual-write. `committed` lines are written automatically by the `.husky/post-commit` hook. |
 | Log to Tracker | `/log-tracker` | Dual-write milestone logger: a `/log-activity` append + a mirrored {{TRACKER}} comment, cross-referenced by id. Reserve for milestones worth surfacing (Step 1 start, blockers, decisions, Step 10 close). |
 | Council | `/council` | 7-step multi-agent deliberation for contested / architectural / irreversible decisions. The devils-advocate is a mandatory participant. Writes a council doc with explicit reopen criteria. |
@@ -232,7 +237,7 @@ Plugin-resident skills (installed once; triggered by slash command or the `Skill
 | Feature branches | per `.claude/rules/git-workflow.md` (see naming below) |
 | Databricks | {{DATABRICKS}} (full block in §12.3 when `on`) |
 | Node toolchain | Node 24 / npm (corpus tooling: frontmatter validation, INDEX build, post-commit logging) |
-| MCP memory file | `{{MEMORY_FILE_PATH}}` (per-project — isolated; never shared across projects) |
+| Memory backend | **corpus** (default — the Markdown corpus is the knowledge graph: chronicle + snapshot + INDEX) or **basic-memory** (opt-in, set at init; adds note tools over `docs/memory/`) |
 
 **Branch naming by stack** (`1 ticket = 1 branch = 1 PR` — see §12.1):
 - **web / generic** → `feat/{{TRACKER_KEY}}-NNN-slug`, `fix/{{TRACKER_KEY}}-NNN-slug` — branched off
@@ -307,8 +312,8 @@ Changes to these require explicit human approval (the PM proposes; the human aut
 8. **Never force-push** — `git push --force`, `git reset --hard` on shared history, and `git clean -f` are
    prohibited (the destructive-command guard hook blocks them).
 9. **Technical content belongs in `docs/`** — CLAUDE.md holds governance only.
-10. **State is files, not memory** — `TODO.md`, `context_snapshot.md`, `activity_log.jsonl`, and the MCP memory
-    keep the project recoverable from a cold start.
+10. **State is files, not memory** — `TODO.md`, `context_snapshot.md`, `activity_log.jsonl`, and the corpus
+    (`project_chronicle.md` + INDEX) keep the project recoverable from a cold start.
 11. **`TODO.md` content is the human's** — agents perform status-sync only, via `/close-task`.
 12. **`docs/architecture.md` is re-audited, never recalled** — conditional close-task updates re-audit live
     sources; never write architecture from memory.

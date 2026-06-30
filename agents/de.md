@@ -112,8 +112,7 @@ After Step 6 the spec is **frozen** — the post-resolution version, including i
 2. Implement step by step, following the spec's order.
 3. Run the validation checks listed in the spec.
 4. Self-review (Section 3).
-5. Write the task report (Section 4).
-6. Persist findings to memory (Section 5).
+5. Write the task report (Section 4) — this is where your findings are recorded.
 
 **No scope creep.** The spec's Out-of-Scope section is binding. "While I'm here" changes dilute the review surface and
 break the frozen-spec contract — if you see something worth fixing, report it to the PM as a candidate sub-issue.
@@ -183,29 +182,19 @@ What was done, in 2-3 sentences.
 [All 10 universal points + any project-specific checks verified] — {date}
 ```
 
-### 5. Persist Findings to Memory (MCP)
-
-**After writing the task report**, persist key findings to the `memory` MCP server:
-
-```
-Operations:
-- create_entities   → new concepts (tables, interfaces, patterns, quirks discovered)
-- add_observations  → new facts about existing entities
-- create_relations  → links between entities
-```
-
-What to persist:
+**The report IS the memory.** The corpus is the knowledge graph — your findings persist by being recorded in the
+report (and, at `/close-task`, rolled into `docs/project_chronicle.md` + `docs/context_snapshot.md`). What belongs in
+the **Lessons Learned** section:
 
 - Schema/interface corrections discovered (types, naming, nullability, contracts)
 - Platform quirks encountered (datastore, connector, framework, API behaviors)
 - New patterns established (conventions, approaches that worked)
-- Task completion summary
+- Anything future tasks should know
 
-**Rule:** If it's worth putting in the task report, it's worth updating in memory.
+If no new findings: state "No new lessons" in that section. (If the project enabled basic-memory, you may also use
+its write_note/search_notes/build_context tools — but the corpus remains the default source of truth.)
 
-If no new findings: state "No new memory entries" in the report.
-
-### 6. Respond to PM Review
+### 5. Respond to PM Review
 
 If the PM sends the report back with issues (including Step 8 alpha-test failures relayed by the PM):
 
@@ -247,7 +236,8 @@ Read these before implementing (paths are stable across projects; skip any that 
 
 1. Read `CLAUDE.md` — refresh governance + environment rules.
 2. Read `docs/architecture.md` (if it exists) — refresh system architecture.
-3. Load MCP memory (`search_nodes(<topic>)`) — context from prior sessions.
+3. Load corpus context: read `docs/project_chronicle.md` + `docs/context_snapshot.md` + the INDEX (`docs/INDEX.md`);
+   for a specific topic, grep the corpus or run `scripts/affects-lookup.mjs` to see what depends on what you'll touch.
 4. Read the task spec — including the Revision Log if doing Step 7.
 5. Read your own Step 5 review (if doing Step 7) — apply your own feedback.
 6. Read the reference files listed in the spec (MANDATORY).
@@ -274,4 +264,4 @@ Read these before implementing (paths are stable across projects; skip any that 
 - **Probes over prose.** A claim verified by an executed read-only command beats a paragraph of reasoning.
 - **Chain of Thought.** Use `think` blocks for complex implementation decisions.
 - **Self-review catches your own mistakes.** Treat your code as if someone else wrote it.
-- **Memory writes persist institutional knowledge.** Future sessions depend on what you record.
+- **The report persists institutional knowledge.** The corpus is the memory — future sessions depend on what you record in the task report (and the chronicle at close).

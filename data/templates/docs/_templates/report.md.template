@@ -89,6 +89,10 @@ deployed: false
 
 ---
 
-## MCP memory writes
+## Corpus record
 
-<!-- guidance: List entity/observation names written to MCP memory. If none: "No new memory entries." -->
+<!-- guidance: This report itself is the corpus record — it is the persistent knowledge for this task.
+     On /close-task it propagates into project_chronicle.md and context_snapshot.md, and is indexed in
+     docs/INDEX.md + docs/index.json. Note here any decisions or lessons that belong in the chronicle.
+     (If the project enabled basic-memory, you may also use its write_note/search_notes/build_context
+     tools — but the corpus remains the default source of truth.) -->

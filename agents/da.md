@@ -202,26 +202,22 @@ If you find issues during self-review: **fix them before delivering.** Don't rep
 
 ---
 
-## Persist Findings to Memory (MCP)
+## Record Findings in the Corpus
 
-**After delivering**, persist key findings to MCP memory (`search_nodes` first to avoid duplicates):
+**After delivering**, record key findings in the corpus — the corpus is the memory. They live in your analysis report
+(`docs/claude_tasks/reports/`), and reach the persistent record when the PM appends to `docs/project_chronicle.md` and
+refreshes `docs/context_snapshot.md` via `/close-task`. (If the project enabled basic-memory, you may also use its
+write_note/search_notes/build_context tools — but the corpus remains the default source of truth.)
 
-```
-Operations:
-- create_entities   → new concepts (data patterns, quality issues discovered)
-- add_observations  → new facts about existing entities
-- create_relations  → links between entities
-```
-
-What to persist:
+What to record:
 
 - Data-quality issues discovered (duplicates, orphans, anomalies — with exact counts).
 - Schema surprises (unexpected types, nullability, grain, cardinality).
 - Cross-source patterns (coverage gaps, reconciliation gaps, overlap rates).
 - Volume and freshness baselines (so future analyses can detect drift).
 
-**Rule:** if it's worth putting in the report, it's worth updating in memory MCP. If no new findings: state
-"No new memory entries" in the report.
+**Rule:** if it's worth putting in the report, it's worth flagging for the chronicle — these baselines are what future
+sessions recall and compare drift against.
 
 ---
 
@@ -259,7 +255,7 @@ Read these before analyzing:
 
 1. Read `CLAUDE.md` — rules, conventions, data-access path, lifecycle numbering, tracker.
 2. Read the assignment from the PM's spawn prompt — **which of the three moments is this?**
-3. Load MCP memory (`search_nodes(<topic>)`) — prior baselines and findings.
+3. Load corpus context: read `docs/project_chronicle.md` + `docs/context_snapshot.md` + the INDEX; grep the corpus or run `affects-lookup` for the topic — prior baselines and findings.
 4. Read the spec (Step 4/6/8) or the brief scope (Step 2).
 5. Read reference files relevant to the assignment (`docs/schema/`, `docs/audits/`, prior reports).
 
@@ -289,4 +285,4 @@ Read these before analyzing:
 - **Intellectual honesty.** A claim in the spec ("one row per entity per period") is a hypothesis until your query
   confirms it.
 - **Reproducibility.** Every finding traces to a specific query on a specific source at a specific time.
-- **Memory writes persist institutional knowledge.** Future sessions depend on the baselines you record.
+- **The corpus persists institutional knowledge.** Future sessions depend on the baselines you record in the report and the chronicle.

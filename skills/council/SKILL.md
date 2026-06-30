@@ -53,7 +53,7 @@ Formal multi-agent deliberation with adversarial review. Adapts the 7-step proto
 The PM writes the framing **before any member is spawned**:
 - **The question** — one sentence, answerable
 - **Options on the table** — each stated neutrally (no pre-loaded winner)
-- **Evidence available** — file paths, data profiles, prior decisions from `docs/project_chronicle.md` and `docs/strategy.md` (the Decisions section), relevant incidents from MCP memory
+- **Evidence available** — file paths, data profiles, prior decisions from `docs/project_chronicle.md` and `docs/strategy.md` (the Decisions section), relevant incidents from the corpus (grep `docs/project_chronicle.md` for the topic; the chronicle is the memory). (If the project enabled basic-memory, you may also use its write_note/search_notes/build_context tools — but the corpus remains the default source of truth.)
 - **What a decision must satisfy** — the constraints (cost, governance, data freshness, distribution, deadlines, etc.)
 
 **Abort gate:** if the framing makes the answer obvious, stop — council is overkill. Decide it and log a `decision` event via `/log-activity` instead.
@@ -97,7 +97,7 @@ The PM audits the cross-examination for health signals:
 
 The PM drafts a one-paragraph synthesis of the emerging position from Steps 2–4 and passes it to `devils-advocate` together with the member positions.
 
-`devils-advocate` applies the full **Grounded-Dissent Protocol** (see its agent charter): every objection must cite evidence — file:line, data row, MCP-memory incident, architecture principle, hard rule, or a `project_chronicle` problem — or it is discarded. It returns a structured attack report with an overall verdict (`attack` / `mostly_grounded_dissent` / `mostly_speculative`).
+`devils-advocate` applies the full **Grounded-Dissent Protocol** (see its agent charter): every objection must cite evidence — file:line, data row, a `project_chronicle` incident, architecture principle, hard rule, or a `project_chronicle` problem — or it is discarded. It returns a structured attack report with an overall verdict (`attack` / `mostly_grounded_dissent` / `mostly_speculative`).
 
 **A council without a `devils-advocate` attack is invalid — no exceptions, even when the members agree unanimously.** Especially then: unanimity is a groupthink signal, not a confidence signal.
 

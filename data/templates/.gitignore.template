@@ -57,5 +57,8 @@ venv/
 *.parquet.tmp
 
 # NOTE: docs/activity_log.jsonl is the append-only audit trail and IS committed.
-# NOTE: the per-project memory file ({{MEMORY_FILE_PATH}}) lives outside the repo
-#       (under the user's home), so it needs no ignore entry here.
+# NOTE: by default there is no memory MCP — the markdown corpus is the knowledge
+#       graph, so there is nothing to ignore. If basic-memory is enabled, its
+#       derived SQLite index is regenerable (not the source of truth) — ignore it:
+*.db
+.basic-memory/

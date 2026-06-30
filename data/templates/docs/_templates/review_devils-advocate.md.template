@@ -26,8 +26,8 @@ medium_count: 0
      Step 5 in parallel with the DE review and is a mandatory participant on every Council.
      Read-only. NEVER proposes solutions, NEVER implements, NEVER approves.
      GROUNDED-DISSENT PROTOCOL: every objection MUST cite evidence — file:line, a data row,
-     an MCP memory incident, an architecture principle, a hard rule, or a chronicle problem —
-     or it is discarded. Speak in attack mode ("this WILL fail because…"), not hedged.
+     a project_chronicle.md incident, an architecture principle, a hard rule, or a chronicle
+     problem — or it is discarded. Speak in attack mode ("this WILL fail because…"), not hedged.
      Verdict enum: attack | mostly_grounded_dissent | mostly_speculative. -->
 
 > Attacker: devils-advocate (formerly loki)
@@ -50,7 +50,7 @@ medium_count: 0
      without evidence is discarded — do not list it.
      Format:
        **Attack N — Title**
-       Evidence: (what was read to ground this — file:line / memory / chronicle / rule)
+       Evidence: (what was read to ground this — file:line / project_chronicle.md / rule)
        Risk: (the failure mode this causes)
        Severity: High | Medium | Low -->
 

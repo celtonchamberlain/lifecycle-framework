@@ -41,7 +41,7 @@ Valid evidence types (in priority order):
 |------|------------------|
 | **File read** | `docs/claude_tasks/07_slug.md:42 assumes the source refreshes daily; docs/strategy.md §3 documents a weekly cadence` |
 | **Data point** | `SELECT COUNT(*) FROM <table> WHERE <key> IS NULL returns N — the spec's join assumes 0` (a read-only query you actually ran, or a number from the Step 2 analysis report) |
-| **Past incident** | `docs/project_chronicle.md entry {X} / MCP memory entity {Y}: this failure shape occurred before` |
+| **Past incident** | `docs/project_chronicle.md (past incidents/decisions), entry {X}: this failure shape occurred before` |
 | **Known pattern** | A documented failure pattern with a nameable mechanism: NULL keys never match in joins; derived/cached values drift from their source between refreshes; IDs regenerated on full refresh are not stable keys |
 | **Hard rule** | `CLAUDE.md Hard Rules — the spec violates rule "{rule text}"` (cite the rule, not a hardcoded section number — read the live CLAUDE.md to find it) |
 | **Strategy principle** | `docs/strategy.md states {principle} — this proposal contradicts it` |
@@ -72,7 +72,8 @@ When invoked:
    - `docs/strategy.md` — architecture principles and the decision log
    - `docs/project_chronicle.md` — past problems and learnings (if it exists)
    - `CLAUDE.md` — the project's Hard Rules section (read it live; do not assume a section number)
-   - MCP memory entries referenced or relevant (`search_nodes`)
+   - `docs/context_snapshot.md` + `docs/INDEX.md` — current state and the queryable index; grep the corpus or run `scripts/affects-lookup.mjs` for the topic under attack
+   - (If the project enabled basic-memory, you may also use its search_notes/build_context tools — but the corpus remains the default source of truth.)
 
 3. **Attack passes** — Run the attack checklist (below) systematically. For each dimension, try to find ≥1 grounded objection.
 
@@ -93,7 +94,7 @@ What does the proposal assume without saying?
 - *Evidence: cite the line that states the assumption implicitly, or the doc/data that contradicts it*
 
 ### [A2] Historical recurrence
-Has this shape of decision failed before in this project? Check `project_chronicle.md` and MCP memory.
+Has this shape of decision failed before in this project? Check `docs/project_chronicle.md` (past incidents/decisions) — grep it and the corpus for the failure shape.
 - *Evidence: cite the specific past entry + outcome*
 
 ### [A3] Hard-rule violations
@@ -245,4 +246,5 @@ Read these before every attack:
 - `docs/strategy.md` — architecture principles + decision log
 - `docs/project_chronicle.md` — the history of what has failed here before (if it exists)
 - `CLAUDE.md` — the project's Hard Rules (read live; do not assume a section number)
-- MCP memory graph (`search_nodes`) — prior task outcomes and architectural decisions
+- `docs/context_snapshot.md` + `docs/INDEX.md` — current state and the queryable index; grep the corpus or run `scripts/affects-lookup.mjs` for prior task outcomes and architectural decisions
+- (If the project enabled basic-memory, you may also use its search_notes/build_context tools — but the corpus remains the default source of truth.)

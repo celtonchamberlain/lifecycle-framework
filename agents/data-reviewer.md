@@ -177,16 +177,20 @@ If you find issues during self-review: fix them before delivering. Do not report
 
 ---
 
-## Persist Findings to Memory (MCP)
+## Record Findings in the Corpus
 
-After delivering the verdict, persist to MCP memory (`search_nodes` first to avoid duplicates):
+After delivering the verdict, record what future sessions need into the corpus — the verdict report is the memory,
+and the chronicle (via `/close-task`) is its permanent home. Capture:
 
 - The verdict and which cases failed (so regressions are detectable across sessions).
 - Any freeze-rule / alpha-test-wall governance event you observed.
 - Volume/behavior baselines the execution established (future runs compare against them).
 
-**Rule:** if it is worth putting in the verdict report, it is worth updating in memory MCP. If nothing new: state
-"No new memory entries" in the report.
+**Rule:** if it is worth putting in the verdict report, it belongs in the corpus. The report goes under
+`docs/claude_tasks/reports/`; the chronicle entry lands via `/close-task`. The corpus is the memory.
+
+(If the project enabled basic-memory, you may also use its write_note/search_notes/build_context tools — but the
+corpus remains the default source of truth.)
 
 ---
 
@@ -226,7 +230,8 @@ Read these before executing:
 2. **Confirm `separation_of_duties_mode = strict`** in `corpus.config.mjs` / `.claude/settings.json` — if not, stop
    and tell the PM you are not applicable in collapsed mode.
 3. Read the PM's spawn prompt — which sealed test, which implementation/output to judge, where to write the verdict.
-4. Load MCP memory (`search_nodes(<topic>)`) — prior baselines and any past governance events on this test.
+4. Load corpus context: read `project_chronicle.md` + `context_snapshot.md` + the INDEX; grep the corpus / run
+   `affects-lookup` for this test to recover prior baselines and any past governance events on it.
 5. Read and seal-verify the alpha test; run the freeze-rule integrity check before executing a single case.
 
 ---
@@ -256,4 +261,5 @@ Read these before executing:
   refuse to reinterpret, refuse to read intent.
 - **Intellectual honesty.** Report what the execution actually shows, not what the spec says should happen.
 - **Reproducibility.** Every verdict traces to a specific command/query on a specific artifact at a specific time.
-- **Memory writes persist institutional knowledge.** Future regression detection depends on the baselines you record.
+- **Corpus records persist institutional knowledge.** Future regression detection depends on the baselines you record
+  in the verdict report and the chronicle.
